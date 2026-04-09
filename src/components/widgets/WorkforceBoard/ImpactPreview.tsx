@@ -5,7 +5,7 @@ import { useWorkforceStore } from "@/lib/stores/workforceStore";
 import { useFinancialStore } from "@/lib/stores/financialStore";
 import { calculateCostDelta, calculateTotalPayroll, calculateAdjustedPayroll } from "@/lib/utils/workforce-calculations";
 import { calculateTotalRevenue, calculatePayrollToRevenueRatio } from "@/lib/utils/calculations";
-import { formatCurrency } from "@/lib/utils/currency";
+import { formatCompactCurrency } from "@/lib/utils/currency";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/formatters";
 import type { Employee } from "@/lib/data/types";
@@ -74,30 +74,30 @@ export function ImpactPreview({ employee, onSave, onDiscard }: ImpactPreviewProp
     <div className="border-l-4 border-accent bg-surface-elevated rounded-r-[12px] p-4 mt-4">
       <p className="text-xs font-semibold text-text-faint uppercase tracking-wider mb-3">Financial Impact Preview</p>
 
-      <div className="flex items-center gap-6 mb-3">
+      <div className="flex items-center gap-4 mb-3 flex-wrap">
         {/* Monthly delta */}
-        <div>
+        <div className="min-w-0">
           <p className="text-[10px] text-text-faint uppercase tracking-wider mb-0.5">Monthly</p>
-          <p className={cn("font-mono text-lg font-bold", isIncrease ? "text-danger" : "text-success")}>
-            {isIncrease ? "+" : ""}{formatCurrency(impact.monthly)}/mo
+          <p className={cn("font-mono text-base font-bold truncate", isIncrease ? "text-danger" : "text-success")}>
+            {isIncrease ? "+" : ""}{formatCompactCurrency(impact.monthly)}/mo
           </p>
         </div>
 
         {/* Annual delta */}
-        <div>
+        <div className="min-w-0">
           <p className="text-[10px] text-text-faint uppercase tracking-wider mb-0.5">Annual</p>
-          <p className={cn("font-mono text-lg font-bold", isIncrease ? "text-danger" : "text-success")}>
-            {isIncrease ? "+" : ""}{formatCurrency(impact.annual)}/yr
+          <p className={cn("font-mono text-base font-bold truncate", isIncrease ? "text-danger" : "text-success")}>
+            {isIncrease ? "+" : ""}{formatCompactCurrency(impact.annual)}/yr
           </p>
         </div>
 
         {/* Payroll ratio */}
-        <div>
+        <div className="min-w-0">
           <p className="text-[10px] text-text-faint uppercase tracking-wider mb-0.5">Payroll Ratio</p>
           <div className="flex items-center gap-1.5">
-            <span className="font-mono text-sm text-text-muted">{ratioImpact.current.toFixed(1)}%</span>
+            <span className="font-mono text-xs text-text-muted">{ratioImpact.current.toFixed(0)}%</span>
             <span className="text-text-faint">→</span>
-            <span className={cn("font-mono text-sm font-semibold", ratioImpact.improved ? "text-success" : "text-danger")}>
+            <span className={cn("font-mono text-xs font-semibold", ratioImpact.improved ? "text-success" : "text-danger")}>
               {ratioImpact.new.toFixed(1)}%
             </span>
             {ratioImpact.improved
