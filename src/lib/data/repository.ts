@@ -1,4 +1,5 @@
 import type { Business, CreateBusiness, Employee, CreateEmployee, Expense, CreateExpense, RevenueEntry, CreateRevenue, DashboardLayout } from "./types";
+import type { OODADecision, CreateOODADecision, DecisionLogEntry, CreateDecisionLogEntry } from "./ooda-types";
 
 export interface DataRepository {
   getBusinesses(): Promise<Business[]>;
@@ -22,4 +23,11 @@ export interface DataRepository {
   saveLayout(layout: DashboardLayout): void;
 
   onChange(callback: () => void): () => void;
+
+  getOODADecisions(status?: string): Promise<OODADecision[]>;
+  getOODADecision(id: string): Promise<OODADecision | null>;
+  createOODADecision(data: CreateOODADecision): Promise<OODADecision>;
+  updateOODADecision(id: string, data: Partial<OODADecision>): Promise<OODADecision>;
+  addDecisionLogEntry(data: CreateDecisionLogEntry): Promise<DecisionLogEntry>;
+  getDecisionLog(decisionId: string): Promise<DecisionLogEntry[]>;
 }

@@ -10,6 +10,12 @@ import type {
   CreateRevenue,
   DashboardLayout,
 } from "./types";
+import type {
+  OODADecision,
+  CreateOODADecision,
+  DecisionLogEntry,
+  CreateDecisionLogEntry,
+} from "./ooda-types";
 import { createClient } from "@/lib/supabase/client";
 
 function mapBusiness(row: any): Business {
@@ -66,6 +72,41 @@ function mapRevenue(row: any): RevenueEntry {
     source: row.source ?? "manual",
     description: row.description ?? "",
     date: row.date,
+    createdAt: row.created_at,
+  };
+}
+
+function mapOODADecision(row: any): OODADecision {
+  return {
+    id: row.id,
+    title: row.title,
+    type: row.type,
+    stage: row.stage,
+    observeData: row.observe_data ?? {},
+    orientAnalysis: row.orient_analysis ?? {},
+    decideOptions: row.decide_options ?? {},
+    actOutcome: row.act_outcome ?? {},
+    adminVotes: row.admin_votes ?? {},
+    financialImpact: row.financial_impact ?? {},
+    aiAutomationAssessment: row.ai_automation_assessment ?? null,
+    relatedEmployeeId: row.related_employee_id ?? null,
+    relatedBusinessId: row.related_business_id ?? null,
+    status: row.status ?? "in_progress",
+    decidedBy: row.decided_by ?? null,
+    decidedAt: row.decided_at ?? null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapDecisionLog(row: any): DecisionLogEntry {
+  return {
+    id: row.id,
+    oodaDecisionId: row.ooda_decision_id,
+    action: row.action,
+    snapshot: row.snapshot ?? {},
+    outcomeNotes: row.outcome_notes ?? null,
+    performedBy: row.performed_by ?? null,
     createdAt: row.created_at,
   };
 }
@@ -278,5 +319,98 @@ export const supabaseRepository: DataRepository = {
     return () => {
       listeners = listeners.filter((cb) => cb !== callback);
     };
+  },
+
+  async getOODADecisions(status?: string) {
+    const supabase = createClient();
+    let query = supabase.from("ooda_decisions").select("*").order("created_at", { ascending: false });
+    if (status) query = query.eq("status", status);
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data ?? []).map(mapOODADecision);
+  },
+
+  async getOODADecision(id: string) {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("ooda_decisions")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error) return null;
+    return mapOODADecision(data);
+  },
+
+  async createOODADecision(input: CreateOODADecision) {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("ooda_decisions")
+      .insert({
+        title: input.title,
+        type: input.type,
+        related_employee_id: input.relatedEmployeeId ?? null,
+        related_business_id: input.relatedBusinessId ?? null,
+        observe_data: input.observeData ?? {},
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    notifyListeners();
+    return mapOODADecision(data);
+  },
+
+  async updateOODADecision(id: string, input: Partial<OODADecision>) {
+    const supabase = createClient();
+    const updates: any = {};
+    if (input.stage !== undefined) updates.stage = input.stage;
+    if (input.observeData !== undefined) updates.observe_data = input.observeData;
+    if (input.orientAnalysis !== undefined) updates.orient_analysis = input.orientAnalysis;
+    if (input.decideOptions !== undefined) updates.decide_options = input.decideOptions;
+    if (input.actOutcome !== undefined) updates.act_outcome = input.actOutcome;
+    if (input.adminVotes !== undefined) updates.admin_votes = input.adminVotes;
+    if (input.financialImpact !== undefined) updates.financial_impact = input.financialImpact;
+    if (input.aiAutomationAssessment !== undefined) updates.ai_automation_assessment = input.aiAutomationAssessment;
+    if (input.status !== undefined) updates.status = input.status;
+    if (input.decidedBy !== undefined) updates.decided_by = input.decidedBy;
+    if (input.decidedAt !== undefined) updates.decided_at = input.decidedAt;
+    updates.updated_at = new Date().toISOString();
+
+    const { data, error } = await supabase
+      .from("ooda_decisions")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    notifyListeners();
+    return mapOODADecision(data);
+  },
+
+  async addDecisionLogEntry(input: CreateDecisionLogEntry) {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("decision_log")
+      .insert({
+        ooda_decision_id: input.oodaDecisionId,
+        action: input.action,
+        snapshot: input.snapshot,
+        outcome_notes: input.outcomeNotes ?? null,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    notifyListeners();
+    return mapDecisionLog(data);
+  },
+
+  async getDecisionLog(decisionId: string) {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("decision_log")
+      .select("*")
+      .eq("ooda_decision_id", decisionId)
+      .order("created_at");
+    if (error) throw error;
+    return (data ?? []).map(mapDecisionLog);
   },
 };
