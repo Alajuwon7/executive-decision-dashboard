@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/lib/auth";
+import { login, signUp } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [mode, setMode] = useState<"login" | "signup">("login");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,9 +20,20 @@ export default function LoginPage() {
       return;
     }
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
-    login(email);
-    router.push("/dashboard");
+    try {
+      if (mode === "signup") {
+        await signUp(email, password);
+        toast.success("Account created! Check your email to confirm, then sign in.");
+        setMode("login");
+      } else {
+        await login(email, password);
+        router.push("/dashboard");
+      }
+    } catch (err: any) {
+      toast.error(err.message ?? "Authentication failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -34,7 +46,9 @@ export default function LoginPage() {
           <h1 className="text-xl font-bold text-text-primary">
             Executive Decision Intelligence
           </h1>
-          <p className="text-sm text-text-muted mt-1">Sign in to your dashboard</p>
+          <p className="text-sm text-text-muted mt-1">
+            {mode === "login" ? "Sign in to your dashboard" : "Create your account"}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-surface border border-border rounded-card p-6 space-y-4">
@@ -48,17 +62,31 @@ export default function LoginPage() {
           <Input
             label="Password"
             type="password"
-            placeholder="Enter password"
+            placeholder={mode === "signup" ? "Create a password (min 6 chars)" : "Enter password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <Button type="submit" className="w-full" isLoading={isLoading}>
-            Sign In
+            {mode === "login" ? "Sign In" : "Create Account"}
           </Button>
         </form>
 
-        <p className="text-xs text-text-faint text-center mt-4">
-          Phase 1: Mock auth — any credentials accepted
+        <p className="text-xs text-text-muted text-center mt-4">
+          {mode === "login" ? (
+            <>
+              Don&apos;t have an account?{" "}
+              <button onClick={() => setMode("signup")} className="text-accent hover:underline">
+                Sign up
+              </button>
+            </>
+          ) : (
+            <>
+              Already have an account?{" "}
+              <button onClick={() => setMode("login")} className="text-accent hover:underline">
+                Sign in
+              </button>
+            </>
+          )}
         </p>
       </div>
     </div>

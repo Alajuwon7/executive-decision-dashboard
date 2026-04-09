@@ -1,8 +1,9 @@
 "use client";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download, Plus, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { getUser, logout } from "@/lib/auth";
+import { getUser, logout, type AppUser } from "@/lib/auth";
 
 interface TopBarProps {
   onAddEntry: () => void;
@@ -10,10 +11,14 @@ interface TopBarProps {
 
 export function TopBar({ onAddEntry }: TopBarProps) {
   const router = useRouter();
-  const user = getUser();
+  const [user, setUser] = useState<AppUser | null>(null);
 
-  const handleLogout = () => {
-    logout();
+  useEffect(() => {
+    getUser().then(setUser);
+  }, []);
+
+  const handleLogout = async () => {
+    await logout();
     router.push("/login");
   };
 
