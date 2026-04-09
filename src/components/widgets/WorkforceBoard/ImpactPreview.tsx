@@ -95,9 +95,9 @@ export function ImpactPreview({ employee, onSave, onDiscard }: ImpactPreviewProp
         <div className="min-w-0">
           <p className="text-[10px] text-text-faint uppercase tracking-wider mb-0.5">Payroll Ratio</p>
           <div className="flex items-center gap-1.5">
-            <span className="font-mono text-xs text-text-muted">{ratioImpact.current.toFixed(0)}%</span>
+            <span className="font-mono text-base font-bold text-text-muted">{ratioImpact.current.toFixed(0)}%</span>
             <span className="text-text-faint">→</span>
-            <span className={cn("font-mono text-xs font-semibold", ratioImpact.improved ? "text-success" : "text-danger")}>
+            <span className={cn("font-mono text-base font-bold", ratioImpact.improved ? "text-success" : "text-danger")}>
               {ratioImpact.new.toFixed(1)}%
             </span>
             {ratioImpact.improved
