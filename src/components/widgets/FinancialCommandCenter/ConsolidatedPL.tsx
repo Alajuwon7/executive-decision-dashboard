@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useCountUp } from "@/hooks/useCountUp";
 import { useFinancialStore } from "@/lib/stores/financialStore";
 import { formatCurrency } from "@/lib/utils/currency";
+import { calculateConsolidatedPL } from "@/lib/utils/calculations";
 import { Badge } from "@/components/ui/Badge";
 import { KPIDetailModal } from "./KPIDetailModal";
 import type { KPIType } from "@/lib/data/types";
@@ -27,7 +28,11 @@ function MetricCard({ label, value, change, kpiType, onClick }: {
 
 export function ConsolidatedPL() {
   const [selectedKPI, setSelectedKPI] = useState<KPIType | null>(null);
-  const pl = useFinancialStore((s) => s.getConsolidatedPL());
+  const { businesses, expenses, revenueEntries, employees } = useFinancialStore();
+  const pl = useMemo(
+    () => calculateConsolidatedPL(businesses, expenses, revenueEntries, employees),
+    [businesses, expenses, revenueEntries, employees]
+  );
   return (
     <>
       <div className="grid grid-cols-4 gap-3 mb-5">

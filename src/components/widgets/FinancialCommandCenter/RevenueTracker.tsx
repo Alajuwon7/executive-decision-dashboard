@@ -1,21 +1,25 @@
 "use client";
+import { useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useFinancialStore } from "@/lib/stores/financialStore";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatMonthYear } from "@/lib/utils/formatters";
+import { getMonthlyRevenueTrend } from "@/lib/utils/calculations";
 
 export function RevenueTracker() {
-  const { businesses } = useFinancialStore();
-  const trend1 = useFinancialStore((s) => s.getMonthlyRevenueTrend(businesses[0]?.id));
-  const trend2 = useFinancialStore((s) => s.getMonthlyRevenueTrend(businesses[1]?.id));
-  const months = new Set([...trend1.map((d) => d.month), ...trend2.map((d) => d.month)]);
+  const { businesses, revenueEntries } = useFinancialStore();
+  const trend1 = useMemo(() => getMonthlyRevenueTrend(revenueEntries, businesses[0]?.id), [revenueEntries, businesses]);
+  const trend2 = useMemo(() => getMonthlyRevenueTrend(revenueEntries, businesses[1]?.id), [revenueEntries, businesses]);
   const biz1Name = businesses[0]?.displayName ?? "Business 1";
   const biz2Name = businesses[1]?.displayName ?? "Business 2";
-  const data = Array.from(months).sort().map((month) => ({
-    month: formatMonthYear(month + "-01"),
-    [biz1Name]: trend1.find((d) => d.month === month)?.amount ?? 0,
-    [biz2Name]: trend2.find((d) => d.month === month)?.amount ?? 0,
-  }));
+  const data = useMemo(() => {
+    const months = new Set([...trend1.map((d) => d.month), ...trend2.map((d) => d.month)]);
+    return Array.from(months).sort().map((month) => ({
+      month: formatMonthYear(month + "-01"),
+      [biz1Name]: trend1.find((d) => d.month === month)?.amount ?? 0,
+      [biz2Name]: trend2.find((d) => d.month === month)?.amount ?? 0,
+    }));
+  }, [trend1, trend2, biz1Name, biz2Name]);
 
   if (data.length === 0) return (
     <div className="flex flex-col items-center justify-center py-8 text-center">

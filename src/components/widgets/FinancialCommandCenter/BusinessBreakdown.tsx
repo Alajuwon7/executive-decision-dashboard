@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useFinancialStore } from "@/lib/stores/financialStore";
 import { formatCurrency } from "@/lib/utils/currency";
+import { calculateBusinessBreakdown } from "@/lib/utils/calculations";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils/formatters";
 
@@ -9,7 +10,8 @@ const BIZ_COLORS = ["#F59E0B", "#8B5CF6", "#22C55E", "#3B82F6"];
 
 export function BusinessBreakdown() {
   const [expanded, setExpanded] = useState<string | null>(null);
-  const breakdown = useFinancialStore((s) => s.getBusinessBreakdown());
+  const { businesses, expenses, revenueEntries, employees } = useFinancialStore();
+  const breakdown = useMemo(() => calculateBusinessBreakdown(businesses, expenses, revenueEntries, employees), [businesses, expenses, revenueEntries, employees]);
   return (
     <div>
       <p className="text-base font-bold text-text-primary mb-3">Businesses</p>

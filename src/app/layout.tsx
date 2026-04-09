@@ -27,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${dmSans.variable} ${jetbrainsMono.variable}`}>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Toaster
           theme="dark"

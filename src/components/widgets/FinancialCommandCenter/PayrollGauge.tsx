@@ -1,9 +1,13 @@
 "use client";
+import { useMemo } from "react";
 import { useFinancialStore } from "@/lib/stores/financialStore";
 import { Badge } from "@/components/ui/Badge";
+import { calculateConsolidatedPL, calculatePayrollToRevenueRatio } from "@/lib/utils/calculations";
 
 export function PayrollGauge() {
-  const ratio = useFinancialStore((s) => s.getPayrollToRevenueRatio());
+  const { businesses, expenses, revenueEntries, employees } = useFinancialStore();
+  const pl = useMemo(() => calculateConsolidatedPL(businesses, expenses, revenueEntries, employees), [businesses, expenses, revenueEntries, employees]);
+  const ratio = useMemo(() => calculatePayrollToRevenueRatio(pl.totalPayroll, pl.totalRevenue), [pl]);
   const clampedRatio = Math.min(ratio, 100);
   const angle = (clampedRatio / 100) * 180;
   const radians = ((180 - angle) * Math.PI) / 180;

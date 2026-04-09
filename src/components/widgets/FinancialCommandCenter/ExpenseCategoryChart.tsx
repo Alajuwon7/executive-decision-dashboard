@@ -1,9 +1,12 @@
 "use client";
+import { useMemo } from "react";
 import { useFinancialStore } from "@/lib/stores/financialStore";
 import { formatCurrency } from "@/lib/utils/currency";
+import { calculateExpensesByCategory } from "@/lib/utils/calculations";
 
 export function ExpenseCategoryChart() {
-  const categories = useFinancialStore((s) => s.getExpensesByCategory());
+  const { expenses } = useFinancialStore();
+  const categories = useMemo(() => calculateExpensesByCategory(expenses), [expenses]);
   const maxAmount = Math.max(...categories.map((c) => c.amount), 1);
   return (
     <div>

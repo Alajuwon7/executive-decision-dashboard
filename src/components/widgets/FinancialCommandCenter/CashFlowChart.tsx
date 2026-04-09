@@ -1,17 +1,19 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useFinancialStore } from "@/lib/stores/financialStore";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatMonthYear, cn } from "@/lib/utils/formatters";
+import { getMonthlyRevenueTrend, calculateConsolidatedPL } from "@/lib/utils/calculations";
 
 const tabs = ["Income", "Expense", "Saving"] as const;
 
 export function CashFlowChart() {
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>("Income");
-  const trend = useFinancialStore((s) => s.getMonthlyRevenueTrend());
-  const pl = useFinancialStore((s) => s.getConsolidatedPL());
-  const data = trend.map((d) => ({ month: formatMonthYear(d.month + "-01"), amount: d.amount }));
+  const { businesses, expenses, revenueEntries, employees } = useFinancialStore();
+  const trend = useMemo(() => getMonthlyRevenueTrend(revenueEntries), [revenueEntries]);
+  const pl = useMemo(() => calculateConsolidatedPL(businesses, expenses, revenueEntries, employees), [businesses, expenses, revenueEntries, employees]);
+  const data = useMemo(() => trend.map((d) => ({ month: formatMonthYear(d.month + "-01"), amount: d.amount })), [trend]);
 
   return (
     <div>

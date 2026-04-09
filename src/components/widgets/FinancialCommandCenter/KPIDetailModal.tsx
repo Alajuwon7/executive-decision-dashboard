@@ -1,11 +1,12 @@
 "use client";
+import { useMemo } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import { useFinancialStore } from "@/lib/stores/financialStore";
 import { generateKPIInsights } from "@/lib/utils/insights";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatMonthYear } from "@/lib/utils/formatters";
-import { getMonthlyRevenueTrend, calculateTotalRevenue } from "@/lib/utils/calculations";
+import { getMonthlyRevenueTrend, calculateTotalRevenue, calculateConsolidatedPL } from "@/lib/utils/calculations";
 import type { KPIType } from "@/lib/data/types";
 
 const KPI_LABELS: Record<KPIType, string> = {
@@ -14,7 +15,10 @@ const KPI_LABELS: Record<KPIType, string> = {
 
 export function KPIDetailModal({ kpiType, onClose }: { kpiType: KPIType | null; onClose: () => void }) {
   const { businesses, expenses, revenueEntries, employees } = useFinancialStore();
-  const pl = useFinancialStore((s) => s.getConsolidatedPL());
+  const pl = useMemo(
+    () => calculateConsolidatedPL(businesses, expenses, revenueEntries, employees),
+    [businesses, expenses, revenueEntries, employees]
+  );
 
   if (!kpiType) return null;
 
