@@ -12,21 +12,23 @@ import { Button } from "@/components/ui/Button";
 import { AddBusinessForm } from "@/components/forms/AddBusinessForm";
 import { AddExpenseForm } from "@/components/forms/AddExpenseForm";
 import { AddRevenueForm } from "@/components/forms/AddRevenueForm";
+import { WorkforceBoard } from "@/components/widgets/WorkforceBoard";
+import { AddEmployeeForm } from "@/components/forms/AddEmployeeForm";
 import { MetricSkeleton } from "@/components/ui/Skeleton";
 import type { LayoutItem } from "@/lib/data/types";
 
 const defaultLayouts: Record<string, LayoutItem[]> = {
   lg: [
     { i: "financial", x: 0, y: 0, w: 12, h: 8, minW: 6, minH: 4 },
-    { i: "workforce", x: 0, y: 8, w: 4, h: 3, minW: 3, minH: 2 },
-    { i: "ooda", x: 4, y: 8, w: 4, h: 3, minW: 3, minH: 2 },
-    { i: "goals", x: 8, y: 8, w: 4, h: 3, minW: 3, minH: 2 },
-    { i: "scenarios", x: 0, y: 11, w: 6, h: 3, minW: 3, minH: 2 },
-    { i: "pulse", x: 6, y: 11, w: 6, h: 3, minW: 3, minH: 2 },
+    { i: "workforce", x: 0, y: 8, w: 6, h: 5, minW: 4, minH: 3 },
+    { i: "ooda", x: 6, y: 8, w: 6, h: 5, minW: 3, minH: 2 },
+    { i: "goals", x: 0, y: 13, w: 4, h: 3, minW: 3, minH: 2 },
+    { i: "scenarios", x: 4, y: 13, w: 4, h: 3, minW: 3, minH: 2 },
+    { i: "pulse", x: 8, y: 13, w: 4, h: 3, minW: 3, minH: 2 },
   ],
 };
 
-type FormType = "business" | "expense" | "revenue" | null;
+type FormType = "business" | "expense" | "revenue" | "employee" | null;
 
 export default function DashboardPage() {
   const fetchAll = useFinancialStore((s) => s.fetchAll);
@@ -58,7 +60,7 @@ export default function DashboardPage() {
             </div>
             <div key="workforce">
               <WidgetWrapper id="workforce" title="Workforce Intelligence">
-                <PlaceholderWidget title="Workforce Intelligence" description="Team analytics, org charts, and capacity planning" icon={Users} />
+                <WorkforceBoard />
               </WidgetWrapper>
             </div>
             <div key="ooda">
@@ -96,6 +98,9 @@ export default function DashboardPage() {
           <Button variant="secondary" className="w-full justify-start" onClick={() => { setShowFormPicker(false); setFormType("revenue"); }}>
             <Plus className="w-4 h-4" /> Add Revenue Entry
           </Button>
+          <Button variant="secondary" className="w-full justify-start" onClick={() => { setShowFormPicker(false); setFormType("employee"); }}>
+            <Plus className="w-4 h-4" /> Add Employee
+          </Button>
         </div>
       </Modal>
 
@@ -107,6 +112,9 @@ export default function DashboardPage() {
       </Modal>
       <Modal isOpen={formType === "revenue"} onClose={closeForm} title="Add Revenue Entry">
         <AddRevenueForm onClose={closeForm} />
+      </Modal>
+      <Modal isOpen={formType === "employee"} onClose={closeForm} title="Add Employee">
+        <AddEmployeeForm onClose={closeForm} />
       </Modal>
     </div>
   );
