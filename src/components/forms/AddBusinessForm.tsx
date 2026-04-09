@@ -15,12 +15,12 @@ const schema = z.object({
   revenueHigh: z.coerce.number().min(0, "Must be positive"),
 });
 
-type FormData = z.infer<typeof schema>;
+type FormData = z.output<typeof schema>;
 
 export function AddBusinessForm({ onClose }: { onClose: () => void }) {
   const addBusiness = useFinancialStore((s) => s.addBusiness);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: { currency: "USD", revenueLow: 0, revenueHigh: 0 },
   });
 
@@ -30,7 +30,7 @@ export function AddBusinessForm({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4">
       <Input label="Business Name" {...register("name")} error={errors.name?.message} placeholder="e.g. Acme Corp" />
       <Input label="Display Name" {...register("displayName")} error={errors.displayName?.message} placeholder="e.g. Acme" />
       <Select label="Currency" {...register("currency")} error={errors.currency?.message} options={[

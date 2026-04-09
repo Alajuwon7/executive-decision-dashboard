@@ -37,7 +37,7 @@ export function RevenueTracker() {
         <LineChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
           <XAxis dataKey="month" tick={{ fill: "#737373", fontSize: 10 }} axisLine={false} tickLine={false} />
           <YAxis tick={{ fill: "#737373", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`} />
-          <Tooltip contentStyle={{ background: "#2A2A2A", border: "none", borderRadius: "8px", color: "#FFFFFF", fontSize: "12px", fontFamily: "var(--font-jetbrains-mono)" }} formatter={(value: number) => formatCurrency(value)} />
+          <Tooltip contentStyle={{ background: "#2A2A2A", border: "none", borderRadius: "8px", color: "#FFFFFF", fontSize: "12px", fontFamily: "var(--font-jetbrains-mono)" }} formatter={(value: any) => formatCurrency(Number(value))} />
           <Line type="monotone" dataKey={biz1Name} stroke="#F59E0B" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: "#F59E0B" }} />
           <Line type="monotone" dataKey={biz2Name} stroke="#8B5CF6" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: "#8B5CF6" }} />
         </LineChart>

@@ -16,13 +16,13 @@ const schema = z.object({
   date: z.string().min(1, "Date is required"),
 });
 
-type FormData = z.infer<typeof schema>;
+type FormData = z.output<typeof schema>;
 
 export function AddRevenueForm({ onClose }: { onClose: () => void }) {
   const addRevenue = useFinancialStore((s) => s.addRevenue);
   const businesses = useFinancialStore((s) => s.businesses);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: { currency: "USD", source: "manual", date: new Date().toISOString().split("T")[0] },
   });
 
@@ -32,7 +32,7 @@ export function AddRevenueForm({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4">
       <Select label="Business" {...register("businessId")} error={errors.businessId?.message} placeholder="Select business" options={businesses.map((b) => ({ value: b.id, label: b.displayName }))} />
       <div className="grid grid-cols-2 gap-3">
         <Input label="Amount" type="number" step="0.01" {...register("amount")} error={errors.amount?.message} placeholder="0.00" />

@@ -16,13 +16,13 @@ const schema = z.object({
   frequency: z.enum(["monthly", "weekly", "yearly", "one-time"]),
 });
 
-type FormData = z.infer<typeof schema>;
+type FormData = z.output<typeof schema>;
 
 export function AddExpenseForm({ onClose }: { onClose: () => void }) {
   const addExpense = useFinancialStore((s) => s.addExpense);
   const businesses = useFinancialStore((s) => s.businesses);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: { currency: "USD", frequency: "monthly" },
   });
 
@@ -32,7 +32,7 @@ export function AddExpenseForm({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4">
       <Select label="Business" {...register("businessId")} error={errors.businessId?.message} placeholder="Select business" options={businesses.map((b) => ({ value: b.id, label: b.displayName }))} />
       <Select label="Category" {...register("category")} error={errors.category?.message} placeholder="Select category" options={["Payroll", "Software", "Marketing", "Rent", "Utilities", "Other"].map((c) => ({ value: c, label: c }))} />
       <Input label="Name" {...register("name")} error={errors.name?.message} placeholder="e.g. Office lease" />

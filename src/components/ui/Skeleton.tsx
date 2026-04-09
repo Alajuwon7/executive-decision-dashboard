@@ -2,10 +2,11 @@ import { cn } from "@/lib/utils/formatters";
 
 interface SkeletonProps {
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function Skeleton({ className }: SkeletonProps) {
-  return <div className={cn("skeleton", className)} />;
+export function Skeleton({ className, style }: SkeletonProps) {
+  return <div className={cn("skeleton", className)} style={style} />;
 }
 
 export function MetricSkeleton() {

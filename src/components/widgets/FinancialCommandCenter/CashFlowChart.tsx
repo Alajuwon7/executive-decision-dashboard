@@ -33,7 +33,7 @@ export function CashFlowChart() {
         <BarChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
           <XAxis dataKey="month" tick={{ fill: "#737373", fontSize: 10 }} axisLine={false} tickLine={false} />
           <YAxis tick={{ fill: "#737373", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`} />
-          <Tooltip cursor={{ fill: "rgba(245,158,11,0.05)" }} contentStyle={{ background: "#2A2A2A", border: "none", borderRadius: "8px", color: "#FFFFFF", fontSize: "12px", fontFamily: "var(--font-jetbrains-mono)" }} formatter={(value: number) => [formatCurrency(value), "Revenue"]} />
+          <Tooltip cursor={{ fill: "rgba(245,158,11,0.05)" }} contentStyle={{ background: "#2A2A2A", border: "none", borderRadius: "8px", color: "#FFFFFF", fontSize: "12px", fontFamily: "var(--font-jetbrains-mono)" }} formatter={(value: any) => [formatCurrency(Number(value)), "Revenue"]} />
           <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
             {data.map((_, i) => <Cell key={i} fill={i === data.length - 1 ? "url(#amberGradientStrong)" : `rgba(245,158,11,${0.1 + (i / data.length) * 0.25})`} />)}
           </Bar>
