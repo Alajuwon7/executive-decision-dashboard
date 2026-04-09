@@ -22,12 +22,28 @@ export interface Employee {
   businessId: string;
   name: string;
   roleTitle: string;
+  roleDescription: string | null;
   compensationType: "hourly" | "salary";
   rate: number;
   currency: string;
   hoursPerWeek: number | null;
-  status: "active" | "inactive";
+  startDate: string | null;
+  performanceNotes: string | null;
+  status: "active" | "on-leave" | "terminated";
   createdAt: string;
+}
+
+export interface CreateEmployee {
+  businessId: string;
+  name: string;
+  roleTitle: string;
+  roleDescription?: string;
+  compensationType: "hourly" | "salary";
+  rate: number;
+  currency: string;
+  hoursPerWeek: number | null;
+  startDate?: string;
+  performanceNotes?: string;
 }
 
 export interface Expense {
