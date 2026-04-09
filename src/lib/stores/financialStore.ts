@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Business, CreateBusiness, Employee, Expense, CreateExpense, RevenueEntry, CreateRevenue, ConsolidatedPL, BusinessBreakdownItem, ExpenseByCategory } from "@/lib/data/types";
+import type { Business, CreateBusiness, Employee, CreateEmployee, Expense, CreateExpense, RevenueEntry, CreateRevenue, ConsolidatedPL, BusinessBreakdownItem, ExpenseByCategory } from "@/lib/data/types";
 import { repository } from "@/lib/data";
 import { calculateConsolidatedPL, calculateBusinessBreakdown, calculateExpensesByCategory, calculatePayrollToRevenueRatio, getMonthlyRevenueTrend } from "@/lib/utils/calculations";
 import { toast } from "sonner";
@@ -16,6 +16,9 @@ interface FinancialState {
   addBusiness: (data: CreateBusiness) => Promise<void>;
   addExpense: (data: CreateExpense) => Promise<void>;
   addRevenue: (data: CreateRevenue) => Promise<void>;
+  addEmployee: (data: CreateEmployee) => Promise<void>;
+  updateEmployee: (id: string, data: Partial<Employee>) => Promise<void>;
+  deleteEmployee: (id: string) => Promise<void>;
 
   getConsolidatedPL: () => ConsolidatedPL;
   getBusinessBreakdown: () => BusinessBreakdownItem[];
@@ -76,6 +79,36 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
       toast.success("Revenue entry added");
     } catch (err) {
       toast.error("Failed to add revenue entry");
+    }
+  },
+
+  addEmployee: async (data) => {
+    try {
+      await repository.addEmployee(data);
+      await get().fetchAll();
+      toast.success("Employee added");
+    } catch (err) {
+      toast.error("Failed to add employee");
+    }
+  },
+
+  updateEmployee: async (id, data) => {
+    try {
+      await repository.updateEmployee(id, data);
+      await get().fetchAll();
+      toast.success("Employee updated");
+    } catch (err) {
+      toast.error("Failed to update employee");
+    }
+  },
+
+  deleteEmployee: async (id) => {
+    try {
+      await repository.deleteEmployee(id);
+      await get().fetchAll();
+      toast.success("Employee removed");
+    } catch (err) {
+      toast.error("Failed to remove employee");
     }
   },
 
