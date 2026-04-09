@@ -1,0 +1,48 @@
+"use client";
+import { useRouter } from "next/navigation";
+import { Download, Plus, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { getUser, logout } from "@/lib/auth";
+
+interface TopBarProps {
+  onAddEntry: () => void;
+}
+
+export function TopBar({ onAddEntry }: TopBarProps) {
+  const router = useRouter();
+  const user = getUser();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  return (
+    <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-bg/80 backdrop-blur-sm sticky top-0 z-40">
+      <h1 className="text-xl font-bold text-text-primary">Dashboard</h1>
+
+      <div className="flex items-center gap-3">
+        <Button variant="secondary" size="sm">
+          <Download className="w-3.5 h-3.5" />
+          Export
+        </Button>
+        <Button size="sm" onClick={onAddEntry}>
+          <Plus className="w-3.5 h-3.5" />
+          Add Entry
+        </Button>
+        <div className="flex items-center gap-2 ml-2 pl-3 border-l border-border">
+          <div className="w-8 h-8 bg-gradient-to-br from-accent to-accent-hover rounded-full flex items-center justify-center">
+            <span className="text-bg text-xs font-bold">{user?.initials ?? "?"}</span>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="text-text-muted hover:text-text-secondary transition-colors"
+            title="Sign out"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
