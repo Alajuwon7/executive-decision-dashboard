@@ -2,16 +2,16 @@
 import { useMemo } from "react";
 import { useFinancialStore } from "@/lib/stores/financialStore";
 import { useWorkforceStore } from "@/lib/stores/workforceStore";
-import { formatCurrency } from "@/lib/utils/currency";
+import { formatCompactCurrency } from "@/lib/utils/currency";
 import { calculateTotalPayroll, calculateAverageCost, calculateFTE } from "@/lib/utils/workforce-calculations";
 import { calculateTotalRevenue, calculatePayrollToRevenueRatio } from "@/lib/utils/calculations";
 import { cn } from "@/lib/utils/formatters";
 
 function StatCard({ label, value, valueClass }: { label: string; value: string; valueClass?: string }) {
   return (
-    <div className="flex-1 min-w-0">
-      <p className="text-[10px] font-semibold text-text-faint uppercase tracking-wider mb-1">{label}</p>
-      <p className={cn("font-mono text-lg font-semibold text-text-primary", valueClass)}>{value}</p>
+    <div className="flex-1 min-w-0 overflow-hidden">
+      <p className="text-[10px] font-semibold text-text-faint uppercase tracking-wider mb-1 truncate">{label}</p>
+      <p className={cn("font-mono text-base font-semibold text-text-primary truncate", valueClass)}>{value}</p>
     </div>
   );
 }
@@ -38,9 +38,9 @@ export function WorkforceStats() {
     <div className="flex items-stretch gap-4 p-4 bg-surface-elevated rounded-[12px] mb-4">
       <StatCard label="Headcount" value={String(active.length)} />
       <div className="w-px bg-border-subtle" />
-      <StatCard label="Monthly Payroll" value={formatCurrency(totalPayroll)} />
+      <StatCard label="Monthly Payroll" value={formatCompactCurrency(totalPayroll)} />
       <div className="w-px bg-border-subtle" />
-      <StatCard label="Avg Cost/Employee" value={formatCurrency(avgCost)} />
+      <StatCard label="Avg Cost/Employee" value={formatCompactCurrency(avgCost)} />
       <div className="w-px bg-border-subtle" />
       <StatCard label="Payroll Ratio" value={`${payrollRatio.toFixed(1)}%`} valueClass={ratioColor} />
       <div className="w-px bg-border-subtle" />

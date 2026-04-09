@@ -1,7 +1,7 @@
 "use client";
 import { memo } from "react";
 import { Badge } from "@/components/ui/Badge";
-import { formatCurrency } from "@/lib/utils/currency";
+import { formatCurrency, formatCompactCurrency } from "@/lib/utils/currency";
 import { calculateMonthlyCost } from "@/lib/utils/workforce-calculations";
 import type { Employee, Business } from "@/lib/data/types";
 
@@ -46,24 +46,24 @@ export const EmployeeCard = memo(function EmployeeCard({ employee, business, onS
 
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-2 mt-2">
-        <div className="bg-bg rounded-[8px] p-2.5 text-center">
+        <div className="bg-bg rounded-[8px] p-2.5 text-center overflow-hidden">
           <p className="text-[10px] text-text-faint uppercase tracking-wider mb-1">Rate</p>
-          <p className="font-mono text-sm font-semibold text-text-primary">
+          <p className="font-mono text-xs font-semibold text-text-primary truncate" title={employee.compensationType === "hourly" ? `${formatCurrency(employee.rate, employee.currency)}/hr` : formatCurrency(employee.rate, employee.currency)}>
             {employee.compensationType === "hourly"
-              ? `${formatCurrency(employee.rate, employee.currency)}/hr`
-              : formatCurrency(employee.rate, employee.currency)}
+              ? `${formatCompactCurrency(employee.rate)}/hr`
+              : formatCompactCurrency(employee.rate)}
           </p>
         </div>
-        <div className="bg-bg rounded-[8px] p-2.5 text-center">
+        <div className="bg-bg rounded-[8px] p-2.5 text-center overflow-hidden">
           <p className="text-[10px] text-text-faint uppercase tracking-wider mb-1">Hours/wk</p>
-          <p className="font-mono text-sm font-semibold text-text-primary">
+          <p className="font-mono text-xs font-semibold text-text-primary truncate">
             {employee.compensationType === "hourly" ? `${employee.hoursPerWeek ?? 0}` : "Salaried"}
           </p>
         </div>
-        <div className="bg-bg rounded-[8px] p-2.5 text-center">
+        <div className="bg-bg rounded-[8px] p-2.5 text-center overflow-hidden">
           <p className="text-[10px] text-text-faint uppercase tracking-wider mb-1">Monthly</p>
-          <p className="font-mono text-sm font-semibold text-accent">
-            {formatCurrency(monthlyCost)}
+          <p className="font-mono text-xs font-semibold text-accent truncate" title={formatCurrency(monthlyCost)}>
+            {formatCompactCurrency(monthlyCost)}
           </p>
         </div>
       </div>
