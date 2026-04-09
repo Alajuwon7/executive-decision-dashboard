@@ -14,6 +14,7 @@ import { AddExpenseForm } from "@/components/forms/AddExpenseForm";
 import { AddRevenueForm } from "@/components/forms/AddRevenueForm";
 import { WorkforceBoard } from "@/components/widgets/WorkforceBoard";
 import { AddEmployeeForm } from "@/components/forms/AddEmployeeForm";
+import { OODAEngine } from "@/components/widgets/OODAEngine";
 import { MetricSkeleton } from "@/components/ui/Skeleton";
 import type { LayoutItem } from "@/lib/data/types";
 
@@ -64,8 +65,8 @@ export default function DashboardPage() {
               </WidgetWrapper>
             </div>
             <div key="ooda">
-              <WidgetWrapper id="ooda" title="OODA Decision Loop">
-                <PlaceholderWidget title="OODA Decision Loop" description="Observe, Orient, Decide, Act framework" icon={BrainCircuit} />
+              <WidgetWrapper id="ooda" title="OODA Decision Engine">
+                <OODAEngine />
               </WidgetWrapper>
             </div>
             <div key="goals">

@@ -12,6 +12,7 @@ import { formatCurrency } from "@/lib/utils/currency";
 import { formatDate } from "@/lib/utils/formatters";
 import { Zap, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { useOODAStore } from "@/lib/stores/oodaStore";
 
 const STATUS_BADGE: Record<string, { variant: "success" | "warning" | "danger"; label: string }> = {
   active: { variant: "success", label: "Active" },
@@ -24,6 +25,7 @@ export function EmployeeDetailModal() {
   const setSelectedEmployee = useWorkforceStore((s) => s.setSelectedEmployee);
   const setEditingEmployee = useWorkforceStore((s) => s.setEditingEmployee);
   const { employees, businesses } = useFinancialStore();
+  const { openNewDecisionWithPrefill } = useOODAStore();
 
   const employee = useMemo(
     () => employees.find((e) => e.id === selectedId),
@@ -123,7 +125,10 @@ export function EmployeeDetailModal() {
           size="sm"
           variant="secondary"
           className="bg-[rgba(245,158,11,0.08)] border-accent/20 text-accent hover:bg-accent-subtle"
-          onClick={() => toast.info("OODA Decision Engine coming in Phase 3")}
+          onClick={() => {
+            openNewDecisionWithPrefill("termination", employee.id, employee.businessId);
+            setSelectedEmployee(null);
+          }}
         >
           <Zap className="w-3.5 h-3.5" />
           Initiate Review
