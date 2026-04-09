@@ -74,7 +74,7 @@ export function ImpactPreview({ employee, onSave, onDiscard }: ImpactPreviewProp
     <div className="border-l-4 border-accent bg-surface-elevated rounded-r-[12px] p-4 mt-4">
       <p className="text-xs font-semibold text-text-faint uppercase tracking-wider mb-3">Financial Impact Preview</p>
 
-      <div className="flex items-center gap-4 mb-3 flex-wrap">
+      <div className="grid grid-cols-3 gap-4 mb-3">
         {/* Monthly delta */}
         <div className="min-w-0">
           <p className="text-[10px] text-text-faint uppercase tracking-wider mb-0.5">Monthly</p>
