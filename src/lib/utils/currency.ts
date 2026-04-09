@@ -3,6 +3,10 @@ const EXCHANGE_RATES: Record<string, number> = {
   CAD: 0.74,
   GBP: 1.27,
   EUR: 1.09,
+  NGN: 0.00065,
+  GHS: 0.063,
+  JMD: 0.0064,
+  TTD: 0.15,
 };
 
 export function formatCurrency(amount: number, currency: string = "USD"): string {
