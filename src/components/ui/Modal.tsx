@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils/formatters";
 
@@ -24,14 +25,14 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
 
   if (!isOpen) return null;
 
-  return (
+  const content = (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
       <div className={cn(
-        "bg-surface border border-border rounded-card p-6 w-full max-w-lg mx-4",
+        "bg-surface border border-border rounded-card p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-auto",
         className
       )}>
         {title && (
@@ -49,4 +50,9 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
       </div>
     </div>
   );
+
+  if (typeof document !== "undefined") {
+    return createPortal(content, document.body);
+  }
+  return content;
 }

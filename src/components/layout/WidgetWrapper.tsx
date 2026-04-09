@@ -69,8 +69,8 @@ export function WidgetWrapper({ id, title, children, actions, className }: Widge
     )}>
       {headerContent}
       <div className={cn(
-        "transition-all duration-200 overflow-hidden",
-        isCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
+        "transition-all duration-200",
+        isCollapsed ? "max-h-0 opacity-0 overflow-hidden" : "overflow-auto"
       )}>
         {children}
       </div>
