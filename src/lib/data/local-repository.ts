@@ -1,5 +1,6 @@
 import type { DataRepository } from "./repository";
 import type { Business, CreateBusiness, Employee, CreateEmployee, Expense, CreateExpense, RevenueEntry, CreateRevenue, DashboardLayout } from "./types";
+import type { OODADecision, CreateOODADecision, DecisionLogEntry, CreateDecisionLogEntry } from "./ooda-types";
 import { seedBusinesses, seedEmployees, seedExpenses, seedRevenueEntries } from "./seed-data";
 import { generateId } from "@/lib/utils/formatters";
 
@@ -10,6 +11,8 @@ const KEYS = {
   revenue: "edi_revenue",
   layout: "edi_layout",
   seeded: "edi_seeded",
+  oodaDecisions: "edi_ooda_decisions",
+  decisionLog: "edi_decision_log",
 };
 
 function getItem<T>(key: string): T[] {
@@ -179,5 +182,76 @@ export const localRepository: DataRepository = {
     return () => {
       listeners = listeners.filter((cb) => cb !== callback);
     };
+  },
+
+  async getOODADecisions(status?: string) {
+    const decisions = getItem<OODADecision>(KEYS.oodaDecisions);
+    return status ? decisions.filter((d) => d.status === status) : decisions;
+  },
+
+  async getOODADecision(id: string) {
+    const decisions = getItem<OODADecision>(KEYS.oodaDecisions);
+    return decisions.find((d) => d.id === id) ?? null;
+  },
+
+  async createOODADecision(input: CreateOODADecision) {
+    const decisions = getItem<OODADecision>(KEYS.oodaDecisions);
+    const now = new Date().toISOString();
+    const newDecision: OODADecision = {
+      id: generateId(),
+      title: input.title,
+      type: input.type,
+      stage: "observe",
+      observeData: input.observeData ?? {},
+      orientAnalysis: {},
+      decideOptions: {},
+      actOutcome: {},
+      adminVotes: {},
+      financialImpact: {},
+      aiAutomationAssessment: null,
+      relatedEmployeeId: input.relatedEmployeeId ?? null,
+      relatedBusinessId: input.relatedBusinessId ?? null,
+      status: "in_progress",
+      decidedBy: null,
+      decidedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    decisions.push(newDecision);
+    setItem(KEYS.oodaDecisions, decisions);
+    notifyListeners();
+    return newDecision;
+  },
+
+  async updateOODADecision(id: string, input: Partial<OODADecision>) {
+    const decisions = getItem<OODADecision>(KEYS.oodaDecisions);
+    const idx = decisions.findIndex((d) => d.id === id);
+    if (idx === -1) throw new Error("Decision not found");
+    decisions[idx] = { ...decisions[idx], ...input, updatedAt: new Date().toISOString() };
+    setItem(KEYS.oodaDecisions, decisions);
+    notifyListeners();
+    return decisions[idx];
+  },
+
+  async addDecisionLogEntry(input: CreateDecisionLogEntry) {
+    const log = getItem<DecisionLogEntry>(KEYS.decisionLog);
+    const newEntry: DecisionLogEntry = {
+      id: generateId(),
+      oodaDecisionId: input.oodaDecisionId,
+      action: input.action,
+      snapshot: input.snapshot,
+      outcomeNotes: input.outcomeNotes ?? null,
+      performedBy: null,
+      createdAt: new Date().toISOString(),
+    };
+    log.push(newEntry);
+    setItem(KEYS.decisionLog, log);
+    notifyListeners();
+    return newEntry;
+  },
+
+  async getDecisionLog(decisionId: string) {
+    const log = getItem<DecisionLogEntry>(KEYS.decisionLog);
+    return log.filter((e) => e.oodaDecisionId === decisionId);
   },
 };
