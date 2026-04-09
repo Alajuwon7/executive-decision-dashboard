@@ -57,7 +57,7 @@ export function OODAModal() {
 
   const advanceStage = async (nextStage: DecisionStage) => {
     if (!decision) return;
-    setStage(nextStage);
+    setStage(nextStage as "observe" | "orient" | "decide" | "act");
     await repository.updateOODADecision(decision.id, { stage: nextStage });
     await loadDecision();
   };
@@ -83,7 +83,7 @@ export function OODAModal() {
       <div className="px-6 py-4">
         <OODAStepper
           currentStage={activeStage ?? "observe"}
-          onStageClick={(s) => setStage(s)}
+          onStageClick={(s) => setStage(s as "observe" | "orient" | "decide" | "act")}
         />
       </div>
 
