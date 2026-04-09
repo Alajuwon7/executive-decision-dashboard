@@ -3,6 +3,7 @@ import type {
   Business,
   CreateBusiness,
   Employee,
+  CreateEmployee,
   Expense,
   CreateExpense,
   RevenueEntry,
@@ -30,10 +31,13 @@ function mapEmployee(row: any): Employee {
     businessId: row.business_id,
     name: row.name,
     roleTitle: row.role_title,
+    roleDescription: row.role_description ?? null,
     compensationType: row.compensation_type,
     rate: Number(row.rate),
     currency: row.currency,
     hoursPerWeek: row.hours_per_week ? Number(row.hours_per_week) : null,
+    startDate: row.start_date ?? null,
+    performanceNotes: row.performance_notes ?? null,
     status: row.status ?? "active",
     createdAt: row.created_at,
   };
@@ -202,6 +206,61 @@ export const supabaseRepository: DataRepository = {
     const { data, error } = await query;
     if (error) throw error;
     return (data ?? []).map(mapEmployee);
+  },
+
+  async addEmployee(input: CreateEmployee) {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("employees")
+      .insert({
+        business_id: input.businessId,
+        name: input.name,
+        role_title: input.roleTitle,
+        role_description: input.roleDescription ?? null,
+        compensation_type: input.compensationType,
+        rate: input.rate,
+        currency: input.currency,
+        hours_per_week: input.hoursPerWeek,
+        start_date: input.startDate ?? null,
+        performance_notes: input.performanceNotes ?? null,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    notifyListeners();
+    return mapEmployee(data);
+  },
+
+  async updateEmployee(id: string, input: Partial<Employee>) {
+    const supabase = createClient();
+    const updates: any = {};
+    if (input.name !== undefined) updates.name = input.name;
+    if (input.roleTitle !== undefined) updates.role_title = input.roleTitle;
+    if (input.roleDescription !== undefined) updates.role_description = input.roleDescription;
+    if (input.compensationType !== undefined) updates.compensation_type = input.compensationType;
+    if (input.rate !== undefined) updates.rate = input.rate;
+    if (input.currency !== undefined) updates.currency = input.currency;
+    if (input.hoursPerWeek !== undefined) updates.hours_per_week = input.hoursPerWeek;
+    if (input.startDate !== undefined) updates.start_date = input.startDate;
+    if (input.performanceNotes !== undefined) updates.performance_notes = input.performanceNotes;
+    if (input.status !== undefined) updates.status = input.status;
+
+    const { data, error } = await supabase
+      .from("employees")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    notifyListeners();
+    return mapEmployee(data);
+  },
+
+  async deleteEmployee(id: string) {
+    const supabase = createClient();
+    const { error } = await supabase.from("employees").delete().eq("id", id);
+    if (error) throw error;
+    notifyListeners();
   },
 
   getLayout() {

@@ -1,5 +1,5 @@
 import type { DataRepository } from "./repository";
-import type { Business, CreateBusiness, Employee, Expense, CreateExpense, RevenueEntry, CreateRevenue, DashboardLayout } from "./types";
+import type { Business, CreateBusiness, Employee, CreateEmployee, Expense, CreateExpense, RevenueEntry, CreateRevenue, DashboardLayout } from "./types";
 import { seedBusinesses, seedEmployees, seedExpenses, seedRevenueEntries } from "./seed-data";
 import { generateId } from "@/lib/utils/formatters";
 
@@ -123,6 +123,45 @@ export const localRepository: DataRepository = {
     ensureSeeded();
     const employees = getItem<Employee>(KEYS.employees);
     return businessId ? employees.filter((e) => e.businessId === businessId) : employees;
+  },
+
+  async addEmployee(data: CreateEmployee) {
+    const employees = getItem<Employee>(KEYS.employees);
+    const newEmployee: Employee = {
+      id: generateId(),
+      businessId: data.businessId,
+      name: data.name,
+      roleTitle: data.roleTitle,
+      roleDescription: data.roleDescription ?? null,
+      compensationType: data.compensationType,
+      rate: data.rate,
+      currency: data.currency,
+      hoursPerWeek: data.hoursPerWeek,
+      startDate: data.startDate ?? null,
+      performanceNotes: data.performanceNotes ?? null,
+      status: "active",
+      createdAt: new Date().toISOString(),
+    };
+    employees.push(newEmployee);
+    setItem(KEYS.employees, employees);
+    notifyListeners();
+    return newEmployee;
+  },
+
+  async updateEmployee(id: string, data: Partial<Employee>) {
+    const employees = getItem<Employee>(KEYS.employees);
+    const idx = employees.findIndex((e) => e.id === id);
+    if (idx === -1) throw new Error("Employee not found");
+    employees[idx] = { ...employees[idx], ...data };
+    setItem(KEYS.employees, employees);
+    notifyListeners();
+    return employees[idx];
+  },
+
+  async deleteEmployee(id: string) {
+    const employees = getItem<Employee>(KEYS.employees);
+    setItem(KEYS.employees, employees.filter((e) => e.id !== id));
+    notifyListeners();
   },
 
   getLayout() {

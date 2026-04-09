@@ -1,4 +1,4 @@
-import type { Business, CreateBusiness, Employee, Expense, CreateExpense, RevenueEntry, CreateRevenue, DashboardLayout } from "./types";
+import type { Business, CreateBusiness, Employee, CreateEmployee, Expense, CreateExpense, RevenueEntry, CreateRevenue, DashboardLayout } from "./types";
 
 export interface DataRepository {
   getBusinesses(): Promise<Business[]>;
@@ -14,6 +14,9 @@ export interface DataRepository {
   deleteRevenue(id: string): Promise<void>;
 
   getEmployees(businessId?: string): Promise<Employee[]>;
+  addEmployee(data: CreateEmployee): Promise<Employee>;
+  updateEmployee(id: string, data: Partial<Employee>): Promise<Employee>;
+  deleteEmployee(id: string): Promise<void>;
 
   getLayout(): DashboardLayout | null;
   saveLayout(layout: DashboardLayout): void;
