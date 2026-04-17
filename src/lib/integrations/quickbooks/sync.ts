@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/client";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { QuickBooksClient } from "./client";
 import {
   mapInvoiceToRevenue,
@@ -106,7 +106,7 @@ export async function runSync(
   integration: BusinessIntegration,
   syncType: "full" | "incremental" | "manual"
 ): Promise<SyncResult> {
-  const supabase = createClient();
+  const supabase = await createServerSupabaseClient();
   const client = new QuickBooksClient(integration.id);
   const categoryOverrides = (integration.metadata as any)?.categoryOverrides ?? {};
   const since =

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/client";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { encryptToken, decryptToken } from "@/lib/crypto/encryption";
 import { refreshAccessToken } from "./oauth";
 
@@ -8,7 +8,7 @@ interface TokenResult {
 }
 
 export async function getValidAccessToken(integrationId: string): Promise<TokenResult> {
-  const supabase = createClient();
+  const supabase = await createServerSupabaseClient();
   const { data: row, error } = await supabase
     .from("business_integrations")
     .select("access_token, refresh_token, token_expires_at, realm_id")
