@@ -121,6 +121,61 @@ Respond with this exact JSON structure:
 }`;
 }
 
+export function buildWhatWouldItTakePrompt(goal: any, snapshot: any, feasibility: any): string {
+  return `Given the following financial snapshot and an at-risk goal, generate 3-5 concrete, actionable recovery paths. Each path must include specific dollar amounts, timelines, and implementation steps. Be direct and specific — no vague suggestions.
+
+FINANCIAL SNAPSHOT:
+${JSON.stringify(snapshot, null, 2)}
+
+AT-RISK GOAL:
+Title: ${goal.title}
+Type: ${goal.type}
+Target: $${goal.targetValue ?? 0} by ${goal.targetDate ?? "(no date)"}
+Current Progress: $${goal.currentValue ?? 0}
+Monthly Surplus Available: $${feasibility.currentMonthlySurplus ?? 0}
+Monthly Target Needed: $${feasibility.monthlyTarget ?? 0}
+Monthly Gap: $${feasibility.gap ?? 0}
+
+Respond with this exact JSON structure:
+{
+  "cards": [
+    {
+      "title": "short action title",
+      "description": "1-2 sentence description of what to do",
+      "category": "reduce_cost|increase_revenue|restructure|timeline_shift",
+      "monthlySavingsOrRevenue": number,
+      "implementationSteps": ["step 1", "step 2", "step 3"],
+      "timeToImpact": "e.g., Immediate, 2 weeks, 1 month",
+      "difficulty": "easy|medium|hard",
+      "newProjectedDate": "YYYY-MM-DD or null"
+    }
+  ],
+  "summary": "1-2 sentence executive summary"
+}`;
+}
+
+export function buildPatternAnalysisPrompt(snapshot: any): string {
+  return `Given the following financial snapshot, identify the most significant patterns and provide executive-level insights.
+
+SNAPSHOT:
+${JSON.stringify(snapshot, null, 2)}
+
+Respond with this exact JSON structure:
+{
+  "insights": [
+    {
+      "type": "trend|anomaly|opportunity|risk",
+      "title": "short title",
+      "description": "1-2 sentence insight",
+      "severity": "info|warning|critical",
+      "suggestedAction": "what to do about it"
+    }
+  ],
+  "overallHealth": "strong|stable|concerning|critical",
+  "healthSummary": "2-3 sentence overall financial health assessment"
+}`;
+}
+
 export function buildDecidePrompt(orientAnalysis: any, snapshot: any): string {
   return `Based on the following analysis, generate 3-5 concrete decision options ranked by net financial impact.
 

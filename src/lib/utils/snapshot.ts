@@ -1,4 +1,4 @@
-import type { Business, Employee, Expense, RevenueEntry } from "@/lib/data/types";
+import type { Business, Employee, Expense, RevenueEntry, Goal } from "@/lib/data/types";
 import type { FinancialSnapshot } from "@/lib/data/ooda-types";
 import { calculateTotalRevenue, calculateTotalExpenses, calculatePayrollToRevenueRatio } from "./calculations";
 import { calculateMonthlyCost, calculateTotalPayroll } from "./workforce-calculations";
@@ -9,7 +9,8 @@ export function buildFinancialSnapshot(
   businesses: Business[],
   employees: Employee[],
   expenses: Expense[],
-  revenueEntries: RevenueEntry[]
+  revenueEntries: RevenueEntry[],
+  goals: Goal[] = []
 ): FinancialSnapshot {
   const totalRevenue = calculateTotalRevenue(revenueEntries);
   const totalExpenses = calculateTotalExpenses(expenses);
@@ -51,6 +52,20 @@ export function buildFinancialSnapshot(
     totalMonthly: c.amount,
   }));
 
+  const activeGoals = goals
+    .filter((g) => g.status !== "achieved" && g.status !== "abandoned")
+    .map((g) => ({
+      id: g.id,
+      title: g.title,
+      owner: g.owner,
+      type: g.type,
+      status: g.status,
+      targetValue: g.targetValue,
+      currentValue: g.currentValue,
+      targetDate: g.targetDate,
+      feasibility: g.feasibility,
+    }));
+
   return {
     timestamp: new Date().toISOString(),
     consolidated: {
@@ -63,5 +78,6 @@ export function buildFinancialSnapshot(
     businesses: businessData,
     employees: employeeData,
     expenseCategories,
+    activeGoals,
   };
 }

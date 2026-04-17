@@ -1,27 +1,38 @@
 "use client";
-import { LayoutDashboard, Building2, ArrowLeftRight, Users, BrainCircuit, Target, GitBranch, Activity, Settings } from "lucide-react";
+import { LayoutDashboard, Building2, ArrowLeftRight, Users, BrainCircuit, Target, GitBranch, Activity, Settings, Plug } from "lucide-react";
 import { cn } from "@/lib/utils/formatters";
-import { Badge } from "@/components/ui/Badge";
 import { useDashboardStore } from "@/lib/stores/dashboardStore";
 
 const mainNav = [
   { id: "financial", label: "Dashboard", icon: LayoutDashboard },
   { id: "businesses", label: "Businesses", icon: Building2, disabled: true },
   { id: "transactions", label: "Transactions", icon: ArrowLeftRight, disabled: true },
-  { id: "employees", label: "Employees", icon: Users, disabled: true },
+  { id: "workforce", label: "Employees", icon: Users },
 ];
 
 const moduleNav = [
-  { id: "workforce", label: "Workforce", icon: Users, soon: true },
-  { id: "ooda", label: "OODA Loop", icon: BrainCircuit, soon: true },
-  { id: "goals", label: "Goals", icon: Target, soon: true },
-  { id: "scenarios", label: "Scenarios", icon: GitBranch, soon: true },
-  { id: "pulse", label: "Pulse", icon: Activity, soon: true },
+  { id: "ooda", label: "OODA Loop", icon: BrainCircuit },
+  { id: "goals", label: "Goals", icon: Target },
+  { id: "scenarios", label: "Scenarios", icon: GitBranch },
+  { id: "pulse", label: "Pulse", icon: Activity },
+  { id: "integrations", label: "Integrations", icon: Plug },
 ];
+
+function scrollToWidget(id: string) {
+  const el = document.getElementById(`widget-${id}`) ?? document.querySelector(`[data-widget="${id}"]`);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
 
 export function Sidebar() {
   const activeTab = useDashboardStore((s) => s.activeTab);
   const setActiveTab = useDashboardStore((s) => s.setActiveTab);
+
+  const handleNav = (id: string) => {
+    setActiveTab(id);
+    scrollToWidget(id);
+  };
 
   return (
     <aside className="w-[220px] bg-[#111111] border-r border-border flex flex-col h-screen sticky top-0 shrink-0">
@@ -37,7 +48,7 @@ export function Sidebar() {
         {mainNav.map((item) => (
           <button
             key={item.id}
-            onClick={() => !item.disabled && setActiveTab(item.id)}
+            onClick={() => !item.disabled && handleNav(item.id)}
             disabled={item.disabled}
             className={cn(
               "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] text-sm font-medium transition-all duration-150 mb-0.5",
@@ -56,12 +67,16 @@ export function Sidebar() {
         {moduleNav.map((item) => (
           <button
             key={item.id}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] text-sm font-medium text-text-muted opacity-40 cursor-not-allowed mb-0.5"
-            disabled
+            onClick={() => handleNav(item.id)}
+            className={cn(
+              "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] text-sm font-medium transition-all duration-150 mb-0.5",
+              activeTab === item.id
+                ? "bg-accent-subtle text-accent font-semibold"
+                : "text-text-muted hover:bg-surface-elevated hover:text-text-secondary"
+            )}
           >
             <item.icon className="w-[18px] h-[18px]" />
             {item.label}
-            {item.soon && <Badge className="ml-auto text-[10px]">Soon</Badge>}
           </button>
         ))}
       </nav>

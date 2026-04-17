@@ -1,30 +1,101 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { SYSTEM_PROMPT, buildOrientPrompt, buildDecidePrompt } from "@/lib/claude/prompts";
-import { parseOrientResponse, parseDecideResponse } from "@/lib/claude/parsers";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import {
+  SYSTEM_PROMPT,
+  buildOrientPrompt,
+  buildDecidePrompt,
+  buildWhatWouldItTakePrompt,
+  buildPatternAnalysisPrompt,
+} from "@/lib/claude/prompts";
+import {
+  parseOrientResponse,
+  parseDecideResponse,
+  parseWWITResponse,
+  parsePatternAnalysisResponse,
+} from "@/lib/claude/parsers";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+type ActionKind = "orient" | "decide" | "what_would_it_take" | "pattern_analysis";
+const VALID_ACTIONS: ActionKind[] = ["orient", "decide", "what_would_it_take", "pattern_analysis"];
+
+const MAX_PAYLOAD_BYTES = 50 * 1024;
+const RATE_LIMIT_PER_HOUR = 20;
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(userId);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + 3_600_000 });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_PER_HOUR) return false;
+  entry.count++;
+  return true;
+}
+
+function buildPrompt(action: ActionKind, body: any): string {
+  const { decisionType, snapshot, employee, orientAnalysis, goal, feasibility } = body;
+  switch (action) {
+    case "orient":
+      return buildOrientPrompt(decisionType, snapshot, employee);
+    case "decide":
+      return buildDecidePrompt(orientAnalysis, snapshot);
+    case "what_would_it_take":
+      return buildWhatWouldItTakePrompt(goal, snapshot, feasibility);
+    case "pattern_analysis":
+      return buildPatternAnalysisPrompt(snapshot);
+  }
+}
+
+function parseResponse(action: ActionKind, raw: string): any {
+  switch (action) {
+    case "orient":
+      return parseOrientResponse(raw);
+    case "decide":
+      return parseDecideResponse(raw);
+    case "what_would_it_take":
+      return parseWWITResponse(raw);
+    case "pattern_analysis":
+      return parsePatternAnalysisResponse(raw);
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
+    // Auth check
+    const supabase = await createServerSupabaseClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (!user || authError) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Rate limit
+    if (!checkRateLimit(user.id)) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Maximum 20 Claude requests per hour." },
+        { status: 429 }
+      );
+    }
+
+    // Payload size check
+    const contentLength = request.headers.get("content-length");
+    if (contentLength && parseInt(contentLength, 10) > MAX_PAYLOAD_BYTES) {
+      return NextResponse.json({ error: "Request too large" }, { status: 413 });
+    }
+
     const body = await request.json();
-    const { action, decisionType, snapshot, employee, orientAnalysis } = body;
+    const action = body.action as string;
 
-    if (!action) {
-      return NextResponse.json({ error: "Missing action" }, { status: 400 });
+    if (!action || !VALID_ACTIONS.includes(action as ActionKind)) {
+      return NextResponse.json({ error: "Invalid or missing action" }, { status: 400 });
     }
 
-    let userPrompt: string;
-
-    if (action === "orient") {
-      userPrompt = buildOrientPrompt(decisionType, snapshot, employee);
-    } else if (action === "decide") {
-      userPrompt = buildDecidePrompt(orientAnalysis, snapshot);
-    } else {
-      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-    }
+    const userPrompt = buildPrompt(action as ActionKind, body);
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
@@ -34,7 +105,6 @@ export async function POST(request: NextRequest) {
       messages: [{ role: "user", content: userPrompt }],
     });
 
-    // Extract text content
     const textBlock = message.content.find((block) => block.type === "text");
     if (!textBlock || textBlock.type !== "text") {
       return NextResponse.json({ error: "No text response from Claude" }, { status: 500 });
@@ -44,13 +114,8 @@ export async function POST(request: NextRequest) {
 
     let parsed: any;
     try {
-      if (action === "orient") {
-        parsed = parseOrientResponse(rawText);
-      } else {
-        parsed = parseDecideResponse(rawText);
-      }
-    } catch (parseError) {
-      // Retry once asking for valid JSON only
+      parsed = parseResponse(action as ActionKind, rawText);
+    } catch {
       const retryMessage = await anthropic.messages.create({
         model: "claude-sonnet-4-20250514",
         max_tokens: 4096,
@@ -59,20 +124,17 @@ export async function POST(request: NextRequest) {
         messages: [
           { role: "user", content: userPrompt },
           { role: "assistant", content: rawText },
-          { role: "user", content: "Your response was not valid JSON. Please respond ONLY with the valid JSON object, no other text." },
+          {
+            role: "user",
+            content: "Your response was not valid JSON. Please respond ONLY with the valid JSON object, no other text.",
+          },
         ],
       });
-
       const retryBlock = retryMessage.content.find((block) => block.type === "text");
       if (!retryBlock || retryBlock.type !== "text") {
         return NextResponse.json({ error: "Failed to get valid JSON from Claude" }, { status: 500 });
       }
-
-      if (action === "orient") {
-        parsed = parseOrientResponse(retryBlock.text);
-      } else {
-        parsed = parseDecideResponse(retryBlock.text);
-      }
+      parsed = parseResponse(action as ActionKind, retryBlock.text);
     }
 
     return NextResponse.json({
@@ -83,15 +145,12 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("Claude API error:", error);
+    console.error("Claude API error:", error?.message ?? error);
 
     if (error?.status === 429) {
       return NextResponse.json({ error: "Rate limit exceeded. Try again in a few minutes." }, { status: 429 });
     }
 
-    return NextResponse.json(
-      { error: error.message ?? "Failed to get AI analysis" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to get AI analysis" }, { status: 500 });
   }
 }

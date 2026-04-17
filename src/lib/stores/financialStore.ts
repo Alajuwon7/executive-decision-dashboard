@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Business, CreateBusiness, Employee, CreateEmployee, Expense, CreateExpense, RevenueEntry, CreateRevenue, ConsolidatedPL, BusinessBreakdownItem, ExpenseByCategory } from "@/lib/data/types";
+import type { Business, CreateBusiness, Employee, CreateEmployee, Expense, CreateExpense, RevenueEntry, CreateRevenue, ConsolidatedPL, BusinessBreakdownItem, ExpenseByCategory, Goal, PersonalDraw } from "@/lib/data/types";
 import { repository } from "@/lib/data";
 import { calculateConsolidatedPL, calculateBusinessBreakdown, calculateExpensesByCategory, calculatePayrollToRevenueRatio, getMonthlyRevenueTrend } from "@/lib/utils/calculations";
 import { toast } from "sonner";
@@ -9,6 +9,8 @@ interface FinancialState {
   expenses: Expense[];
   revenueEntries: RevenueEntry[];
   employees: Employee[];
+  goals: Goal[];
+  personalDraw: PersonalDraw;
   isLoading: boolean;
   error: string | null;
 
@@ -32,19 +34,23 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
   expenses: [],
   revenueEntries: [],
   employees: [],
+  goals: [],
+  personalDraw: { his: 0, hers: 0 },
   isLoading: true,
   error: null,
 
   fetchAll: async () => {
     set({ isLoading: true, error: null });
     try {
-      const [businesses, expenses, revenueEntries, employees] = await Promise.all([
+      const [businesses, expenses, revenueEntries, employees, goals, personalDraw] = await Promise.all([
         repository.getBusinesses(),
         repository.getExpenses(),
         repository.getRevenueEntries(),
         repository.getEmployees(),
+        repository.getGoals(),
+        repository.getPersonalDraw(),
       ]);
-      set({ businesses, expenses, revenueEntries, employees, isLoading: false });
+      set({ businesses, expenses, revenueEntries, employees, goals, personalDraw, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load data";
       set({ error: message, isLoading: false });

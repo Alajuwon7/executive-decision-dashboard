@@ -5,6 +5,7 @@ import { Download, Plus, LogOut, BrainCircuit } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { getUser, logout, type AppUser } from "@/lib/auth";
 import { useOODAStore } from "@/lib/stores/oodaStore";
+import { AlertBell } from "@/components/widgets/PulseAlerts/AlertBell";
 
 interface TopBarProps {
   onAddEntry: () => void;
@@ -41,6 +42,7 @@ export function TopBar({ onAddEntry }: TopBarProps) {
           <Plus className="w-3.5 h-3.5" />
           Add Entry
         </Button>
+        <AlertBell />
         <div className="flex items-center gap-2 ml-2 pl-3 border-l border-border">
           <div className="w-8 h-8 bg-gradient-to-br from-accent to-accent-hover rounded-full flex items-center justify-center">
             <span className="text-bg text-xs font-bold">{user?.initials ?? "?"}</span>

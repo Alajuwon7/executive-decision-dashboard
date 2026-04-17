@@ -63,14 +63,18 @@ export function WidgetWrapper({ id, title, children, actions, className }: Widge
   }
 
   return (
-    <div className={cn(
-      "bg-surface border border-border rounded-card p-5 transition-all duration-200 h-full",
-      className
-    )}>
+    <div
+      id={`widget-${id}`}
+      data-widget={id}
+      className={cn(
+        "bg-surface border border-border rounded-card p-5 transition-all duration-200 h-full flex flex-col min-h-0 overflow-hidden",
+        className
+      )}
+    >
       {headerContent}
       <div className={cn(
         "transition-all duration-200",
-        isCollapsed ? "max-h-0 opacity-0 overflow-hidden" : "overflow-auto"
+        isCollapsed ? "max-h-0 opacity-0 overflow-hidden" : "flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-1"
       )}>
         {children}
       </div>

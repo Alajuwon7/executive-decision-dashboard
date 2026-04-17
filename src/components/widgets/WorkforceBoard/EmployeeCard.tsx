@@ -3,7 +3,10 @@ import { memo } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/currency";
 import { calculateMonthlyCost } from "@/lib/utils/workforce-calculations";
+import { calculateEmployeeROI } from "@/lib/utils/employee-roi";
+import { useFinancialStore } from "@/lib/stores/financialStore";
 import type { Employee, Business } from "@/lib/data/types";
+import { cn } from "@/lib/utils/formatters";
 
 const STATUS_BADGE: Record<string, { variant: "success" | "warning" | "danger"; label: string }> = {
   active: { variant: "success", label: "Active" },
@@ -19,6 +22,8 @@ interface EmployeeCardProps {
 
 export const EmployeeCard = memo(function EmployeeCard({ employee, business, onSelect }: EmployeeCardProps) {
   const monthlyCost = calculateMonthlyCost(employee);
+  const allEmployees = useFinancialStore((s) => s.employees);
+  const roi = calculateEmployeeROI(employee, allEmployees);
   const statusInfo = STATUS_BADGE[employee.status] ?? STATUS_BADGE.active;
   const isMyers = business?.name?.toLowerCase().includes("myers");
 
@@ -27,10 +32,15 @@ export const EmployeeCard = memo(function EmployeeCard({ employee, business, onS
       onClick={onSelect}
       className="w-full text-left bg-surface border border-border rounded-card p-5 transition-all duration-200 hover:border-border-subtle hover:bg-surface-elevated"
     >
-      {/* Header: name + status */}
+      {/* Header: name + ROI + status */}
       <div className="flex items-start justify-between mb-1">
         <h4 className="text-base font-bold text-text-primary">{employee.name}</h4>
-        <Badge variant={statusInfo.variant} className="text-[10px] ml-2 shrink-0">{statusInfo.label}</Badge>
+        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+          <span className={cn("text-[10px] font-mono font-bold", roi.color)} title={`ROI: ${roi.total} — ${roi.label}`}>
+            ROI {roi.total}
+          </span>
+          <Badge variant={statusInfo.variant} className="text-[10px]">{statusInfo.label}</Badge>
+        </div>
       </div>
 
       {/* Role + business badge */}

@@ -1,11 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Users, BrainCircuit, Target, GitBranch, Activity, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { DashboardGrid } from "@/components/layout/DashboardGrid";
 import { WidgetWrapper } from "@/components/layout/WidgetWrapper";
 import { FinancialCommandCenter } from "@/components/widgets/FinancialCommandCenter";
-import { PlaceholderWidget } from "@/components/widgets/PlaceholderWidget";
 import { useFinancialStore } from "@/lib/stores/financialStore";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
@@ -15,17 +14,22 @@ import { AddRevenueForm } from "@/components/forms/AddRevenueForm";
 import { WorkforceBoard } from "@/components/widgets/WorkforceBoard";
 import { AddEmployeeForm } from "@/components/forms/AddEmployeeForm";
 import { OODAEngine } from "@/components/widgets/OODAEngine";
+import { GoalTracker } from "@/components/widgets/GoalTracker";
+import { ScenarioSimulator } from "@/components/widgets/ScenarioSimulator";
+import { PulseAlerts } from "@/components/widgets/PulseAlerts";
+import { Integrations } from "@/components/widgets/Integrations";
 import { MetricSkeleton } from "@/components/ui/Skeleton";
 import type { LayoutItem } from "@/lib/data/types";
 
 const defaultLayouts: Record<string, LayoutItem[]> = {
   lg: [
-    { i: "financial", x: 0, y: 0, w: 12, h: 8, minW: 6, minH: 4 },
-    { i: "workforce", x: 0, y: 8, w: 6, h: 5, minW: 4, minH: 3 },
-    { i: "ooda", x: 6, y: 8, w: 6, h: 5, minW: 3, minH: 2 },
-    { i: "goals", x: 0, y: 13, w: 4, h: 3, minW: 3, minH: 2 },
-    { i: "scenarios", x: 4, y: 13, w: 4, h: 3, minW: 3, minH: 2 },
-    { i: "pulse", x: 8, y: 13, w: 4, h: 3, minW: 3, minH: 2 },
+    { i: "financial", x: 0, y: 0, w: 12, h: 8, minW: 6, minH: 6 },
+    { i: "workforce", x: 0, y: 8, w: 6, h: 6, minW: 4, minH: 6 },
+    { i: "ooda", x: 6, y: 8, w: 6, h: 6, minW: 3, minH: 4 },
+    { i: "goals", x: 0, y: 14, w: 12, h: 8, minW: 4, minH: 7 },
+    { i: "scenarios", x: 0, y: 22, w: 8, h: 5, minW: 6, minH: 4 },
+    { i: "pulse", x: 8, y: 22, w: 4, h: 5, minW: 3, minH: 4 },
+    { i: "integrations", x: 0, y: 27, w: 6, h: 6, minW: 4, minH: 5 },
   ],
 };
 
@@ -71,17 +75,22 @@ export default function DashboardPage() {
             </div>
             <div key="goals">
               <WidgetWrapper id="goals" title="Strategic Goals">
-                <PlaceholderWidget title="Strategic Goals" description="OKR tracking and goal alignment" icon={Target} />
+                <GoalTracker />
               </WidgetWrapper>
             </div>
             <div key="scenarios">
               <WidgetWrapper id="scenarios" title="Scenario Planning">
-                <PlaceholderWidget title="Scenario Planning" description="What-if analysis and financial modeling" icon={GitBranch} />
+                <ScenarioSimulator />
               </WidgetWrapper>
             </div>
             <div key="pulse">
               <WidgetWrapper id="pulse" title="Business Pulse">
-                <PlaceholderWidget title="Business Pulse" description="Real-time health scores and alerts" icon={Activity} />
+                <PulseAlerts />
+              </WidgetWrapper>
+            </div>
+            <div key="integrations">
+              <WidgetWrapper id="integrations" title="Integrations">
+                <Integrations />
               </WidgetWrapper>
             </div>
           </DashboardGrid>

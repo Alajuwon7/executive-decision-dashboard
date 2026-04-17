@@ -5,7 +5,7 @@ import { useFinancialStore } from "@/lib/stores/financialStore";
 import { useOODAStore } from "@/lib/stores/oodaStore";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { generateDecisionMarkdown, downloadMarkdown } from "@/lib/utils/export";
+import { generateDecisionMarkdown, downloadMarkdown, generateDecisionPDF } from "@/lib/utils/export";
 import { formatCurrency } from "@/lib/utils/currency";
 import { cn } from "@/lib/utils/formatters";
 import { Download, CheckCircle2, XCircle, UserX } from "lucide-react";
@@ -60,11 +60,14 @@ export function ActStage({ decision, onComplete }: ActStageProps) {
     }
   };
 
-  const handleExport = () => {
+  const handleExportPDF = () => {
+    generateDecisionPDF({ ...decision, actOutcome: { outcomeNotes } });
+    toast.success("PDF exported");
+  };
+
+  const handleCopyMarkdown = () => {
     const md = generateDecisionMarkdown({ ...decision, actOutcome: { outcomeNotes } });
-    const filename = `decision-${decision.title.replace(/\s+/g, "-").toLowerCase()}-${new Date().toISOString().split("T")[0]}.md`;
-    downloadMarkdown(md, filename);
-    toast.success("Decision exported");
+    navigator.clipboard.writeText(md).then(() => toast.success("Markdown copied to clipboard"));
   };
 
   const handleCancel = async () => {
@@ -152,8 +155,11 @@ export function ActStage({ decision, onComplete }: ActStageProps) {
         <Button onClick={handleFinalize} isLoading={isProcessing}>
           <CheckCircle2 className="w-3.5 h-3.5" /> Finalize Decision
         </Button>
-        <Button variant="secondary" onClick={handleExport}>
-          <Download className="w-3.5 h-3.5" /> Export Summary
+        <Button variant="secondary" onClick={handleExportPDF}>
+          <Download className="w-3.5 h-3.5" /> Export PDF
+        </Button>
+        <Button variant="ghost" onClick={handleCopyMarkdown}>
+          Copy Markdown
         </Button>
         <div className="flex-1" />
         <Button variant="ghost" className="text-danger" onClick={handleCancel}>

@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Executive Decision Intelligence Dashboard
 
-## Getting Started
+An AI-powered executive command center for multi-business financial oversight, workforce management, and strategic decision-making.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Financial Command Center** — Consolidated P&L across multiple businesses with real-time KPIs
+- **Workforce Intelligence** — Employee management with compensation modeling, ROI scoring, and impact preview
+- **OODA Decision Engine** — AI-powered 4-stage decision framework (Observe → Orient → Decide → Act) with Claude integration
+- **Goal Tracker** — Backward feasibility calculations, "What Would It Take" recovery cards, pattern detection, dependency mapping
+- **Scenario Simulator** — What-if modeling with Monte Carlo probability analysis (1,000 simulations)
+- **Pulse Alerts** — Real-time financial health monitoring with 8 detection algorithms
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Next.js 15 | Supabase | Claude API | Tailwind CSS | react-grid-layout | Recharts | D3.js | Zustand
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Setup
 
-## Learn More
+1. Clone the repository
+2. Copy `.env.example` to `.env.local` and fill in credentials
+3. Run SQL migrations in Supabase SQL editor (in order):
+   - `supabase/schema.sql`
+   - `supabase/phase4_goals.sql`
+   - `supabase/phase6_scenarios_pulse.sql`
+   - `supabase/phase7_views.sql`
+4. Create admin accounts in Supabase Auth
+5. `npm install && npm run dev`
 
-To learn more about Next.js, take a look at the following resources:
+## Environment Variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+See `.env.example` for required variables.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+Configured for Netlify. Set environment variables in the Netlify dashboard.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Proprietary — All rights reserved. See LICENSE file.

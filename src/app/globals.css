@@ -46,6 +46,11 @@
     @apply bg-bg text-text-primary font-sans antialiased;
   }
 
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;

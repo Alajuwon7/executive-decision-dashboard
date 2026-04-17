@@ -86,6 +86,17 @@ export interface FinancialSnapshot {
     category: string;
     totalMonthly: number;
   }>;
+  activeGoals?: Array<{
+    id: string;
+    title: string;
+    owner: string;
+    type: string;
+    status: string;
+    targetValue: number | null;
+    currentValue: number;
+    targetDate: string | null;
+    feasibility: any;
+  }>;
 }
 
 export interface DecisionOption {
