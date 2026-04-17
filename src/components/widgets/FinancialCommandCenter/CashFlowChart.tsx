@@ -3,13 +3,19 @@ import { useState, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useFinancialStore } from "@/lib/stores/financialStore";
 import { formatCurrency } from "@/lib/utils/currency";
-import { formatMonthYear, cn } from "@/lib/utils/formatters";
+import { formatMonthYear } from "@/lib/utils/formatters";
 import { getMonthlyRevenueTrend, calculateConsolidatedPL } from "@/lib/utils/calculations";
+import { KPIDetailModal } from "./KPIDetailModal";
+import type { KPIType } from "@/lib/data/types";
 
-const tabs = ["Income", "Expense", "Saving"] as const;
+const tabs: { label: string; kpi: KPIType }[] = [
+  { label: "Income", kpi: "revenue" },
+  { label: "Expense", kpi: "expenses" },
+  { label: "Saving", kpi: "takeHome" },
+];
 
 export function CashFlowChart() {
-  const [activeTab, setActiveTab] = useState<typeof tabs[number]>("Income");
+  const [selectedKPI, setSelectedKPI] = useState<KPIType | null>(null);
   const { businesses, expenses, revenueEntries, employees } = useFinancialStore();
   const trend = useMemo(() => getMonthlyRevenueTrend(revenueEntries), [revenueEntries]);
   const pl = useMemo(() => calculateConsolidatedPL(businesses, expenses, revenueEntries, employees), [businesses, expenses, revenueEntries, employees]);
@@ -24,10 +30,13 @@ export function CashFlowChart() {
         </div>
         <div className="flex gap-1">
           {tabs.map((tab) => (
-            <button key={tab} onClick={() => setActiveTab(tab)} className={cn(
-              "px-3 py-1.5 rounded-[8px] text-xs font-semibold border transition-all duration-150",
-              activeTab === tab ? "bg-text-primary text-bg border-text-primary" : "bg-transparent text-text-muted border-border-subtle hover:border-text-muted"
-            )}>{tab}</button>
+            <button
+              key={tab.label}
+              onClick={() => setSelectedKPI(tab.kpi)}
+              className="px-3 py-1.5 rounded-[8px] text-xs font-semibold border bg-transparent text-text-muted border-border-subtle hover:border-accent hover:text-text-primary transition-all duration-150"
+            >
+              {tab.label}
+            </button>
           ))}
         </div>
       </div>
@@ -47,6 +56,7 @@ export function CashFlowChart() {
           </defs>
         </BarChart>
       </ResponsiveContainer>
+      <KPIDetailModal kpiType={selectedKPI} onClose={() => setSelectedKPI(null)} />
     </div>
   );
 }

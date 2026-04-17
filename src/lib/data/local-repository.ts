@@ -266,6 +266,14 @@ export const localRepository: DataRepository = {
     return decisions[idx];
   },
 
+  async deleteOODADecision(id: string) {
+    const decisions = getItem<OODADecision>(KEYS.oodaDecisions).filter((d) => d.id !== id);
+    setItem(KEYS.oodaDecisions, decisions);
+    const log = getItem<DecisionLogEntry>(KEYS.decisionLog).filter((e) => e.oodaDecisionId !== id);
+    setItem(KEYS.decisionLog, log);
+    notifyListeners();
+  },
+
   async addDecisionLogEntry(input: CreateDecisionLogEntry) {
     const log = getItem<DecisionLogEntry>(KEYS.decisionLog);
     const newEntry: DecisionLogEntry = {

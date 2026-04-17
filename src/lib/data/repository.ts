@@ -53,6 +53,7 @@ export interface DataRepository {
   getOODADecision(id: string): Promise<OODADecision | null>;
   createOODADecision(data: CreateOODADecision): Promise<OODADecision>;
   updateOODADecision(id: string, data: Partial<OODADecision>): Promise<OODADecision>;
+  deleteOODADecision(id: string): Promise<void>;
   addDecisionLogEntry(data: CreateDecisionLogEntry): Promise<DecisionLogEntry>;
   getDecisionLog(decisionId: string): Promise<DecisionLogEntry[]>;
 

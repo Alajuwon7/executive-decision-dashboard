@@ -22,7 +22,7 @@ export function ActStage({ decision, onComplete }: ActStageProps) {
   const [updateEmployeeStatus, setUpdateEmployeeStatus] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { updateEmployee } = useFinancialStore();
-  const { closeModal } = useOODAStore();
+  const { withdrawDecision } = useOODAStore();
 
   const recommendedOption = decision.decideOptions?.options?.find((o: any) => o.recommended);
   const chosenOption = recommendedOption ?? decision.decideOptions?.options?.[0];
@@ -71,18 +71,8 @@ export function ActStage({ decision, onComplete }: ActStageProps) {
   };
 
   const handleCancel = async () => {
-    await repository.updateOODADecision(decision.id, {
-      status: "cancelled",
-      stage: "completed",
-    });
-    await repository.addDecisionLogEntry({
-      oodaDecisionId: decision.id,
-      action: "cancelled",
-      snapshot: decision.observeData,
-      outcomeNotes: "Decision cancelled by admin",
-    });
-    toast.info("Decision cancelled");
-    closeModal();
+    if (!confirm("Withdraw this decision? It will be marked as cancelled but remain in the timeline for audit.")) return;
+    await withdrawDecision(decision.id);
   };
 
   return (

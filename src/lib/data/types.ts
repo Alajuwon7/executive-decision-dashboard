@@ -56,6 +56,7 @@ export interface Expense {
   frequency: "monthly" | "weekly" | "yearly" | "one-time";
   isActive: boolean;
   createdAt: string;
+  source?: string;
 }
 
 export interface CreateExpense {

@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { toast } from "sonner";
+import { repository } from "@/lib/data";
 
 interface OODAState {
   activeDecisionId: string | null;
@@ -22,10 +24,12 @@ interface OODAState {
   setShowNewDecisionForm: (show: boolean) => void;
   setShowTimeline: (show: boolean) => void;
   openNewDecisionWithPrefill: (type: string, employeeId?: string, businessId?: string) => void;
+  withdrawDecision: (id: string) => Promise<void>;
+  deleteDecision: (id: string) => Promise<void>;
   reset: () => void;
 }
 
-export const useOODAStore = create<OODAState>((set) => ({
+export const useOODAStore = create<OODAState>((set, get) => ({
   activeDecisionId: null,
   activeStage: null,
   isModalOpen: false,
@@ -70,6 +74,55 @@ export const useOODAStore = create<OODAState>((set) => ({
       prefillEmployeeId: employeeId ?? null,
       prefillBusinessId: businessId ?? null,
     }),
+
+  withdrawDecision: async (id) => {
+    try {
+      const decision = await repository.getOODADecision(id);
+      if (!decision) throw new Error("Decision not found");
+      await repository.updateOODADecision(id, {
+        status: "cancelled",
+        stage: "completed",
+      });
+      await repository.addDecisionLogEntry({
+        oodaDecisionId: id,
+        action: "cancelled",
+        snapshot: decision.observeData,
+        outcomeNotes: "Decision withdrawn by admin",
+      });
+      toast.info("Decision withdrawn");
+      if (get().activeDecisionId === id) {
+        set({
+          activeDecisionId: null,
+          activeStage: null,
+          isModalOpen: false,
+          isAnalyzing: false,
+          isGeneratingOptions: false,
+          analysisError: null,
+        });
+      }
+    } catch (err: any) {
+      toast.error(`Withdraw failed: ${err?.message ?? "unknown error"}`);
+    }
+  },
+
+  deleteDecision: async (id) => {
+    try {
+      await repository.deleteOODADecision(id);
+      toast.success("Decision deleted");
+      if (get().activeDecisionId === id) {
+        set({
+          activeDecisionId: null,
+          activeStage: null,
+          isModalOpen: false,
+          isAnalyzing: false,
+          isGeneratingOptions: false,
+          analysisError: null,
+        });
+      }
+    } catch (err: any) {
+      toast.error(`Delete failed: ${err?.message ?? "unknown error"}`);
+    }
+  },
 
   reset: () =>
     set({

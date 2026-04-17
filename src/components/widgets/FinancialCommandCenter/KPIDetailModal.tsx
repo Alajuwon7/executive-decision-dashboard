@@ -6,12 +6,32 @@ import { useFinancialStore } from "@/lib/stores/financialStore";
 import { generateKPIInsights } from "@/lib/utils/insights";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatMonthYear } from "@/lib/utils/formatters";
-import { getMonthlyRevenueTrend, calculateTotalRevenue, calculateConsolidatedPL } from "@/lib/utils/calculations";
-import type { KPIType } from "@/lib/data/types";
+import {
+  getMonthlyRevenueTrend,
+  calculateTotalRevenue,
+  calculateTotalExpenses,
+  calculateMonthlyPayroll,
+  calculateConsolidatedPL,
+} from "@/lib/utils/calculations";
+import type { KPIType, RevenueEntry, Expense } from "@/lib/data/types";
 
 const KPI_LABELS: Record<KPIType, string> = {
   revenue: "Total Revenue", expenses: "Total Expenses", netProfit: "Net Profit", takeHome: "Take-Home",
 };
+
+function SourceBadge({ source }: { source?: string }) {
+  const isQB = (source ?? "manual").toLowerCase() === "quickbooks";
+  return <Badge variant={isQB ? "accent" : "default"} className="text-[10px]">{isQB ? "QB" : "Manual"}</Badge>;
+}
+
+function formatShortDate(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "2-digit" });
+  } catch {
+    return iso;
+  }
+}
 
 export function KPIDetailModal({ kpiType, onClose }: { kpiType: KPIType | null; onClose: () => void }) {
   const { businesses, expenses, revenueEntries, employees } = useFinancialStore();
@@ -19,6 +39,29 @@ export function KPIDetailModal({ kpiType, onClose }: { kpiType: KPIType | null; 
     () => calculateConsolidatedPL(businesses, expenses, revenueEntries, employees),
     [businesses, expenses, revenueEntries, employees]
   );
+
+  const sortedRevenue: RevenueEntry[] = useMemo(
+    () => [...revenueEntries].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "")),
+    [revenueEntries]
+  );
+
+  const expensesByCategory = useMemo(() => {
+    const groups = new Map<string, Expense[]>();
+    expenses.forEach((e) => {
+      const key = e.category || "Uncategorized";
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(e);
+    });
+    return Array.from(groups.entries())
+      .map(([category, items]) => ({
+        category,
+        items: items.sort((a, b) => b.amount - a.amount),
+        subtotal: items.reduce((s, e) => s + e.amount, 0),
+      }))
+      .sort((a, b) => b.subtotal - a.subtotal);
+  }, [expenses]);
+
+  const bizName = (id: string) => businesses.find((b) => b.id === id)?.displayName ?? "—";
 
   if (!kpiType) return null;
 
@@ -41,8 +84,12 @@ export function KPIDetailModal({ kpiType, onClose }: { kpiType: KPIType | null; 
   });
   const bizColors = ["#F59E0B", "#8B5CF6", "#22C55E", "#3B82F6"];
 
+  const totalRevenue = pl.totalRevenue;
+  const totalExpensesVal = calculateTotalExpenses(expenses);
+  const totalPayroll = calculateMonthlyPayroll(employees);
+
   return (
-    <Modal isOpen onClose={onClose} className="max-w-md">
+    <Modal isOpen onClose={onClose} className="max-w-lg">
       <div className="flex items-start justify-between mb-4">
         <div>
           <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">{KPI_LABELS[kpiType]}</p>
@@ -87,7 +134,7 @@ export function KPIDetailModal({ kpiType, onClose }: { kpiType: KPIType | null; 
         </div>
       )}
       {kpiType === "revenue" && bizSplit.length > 0 && (
-        <div>
+        <div className="mb-5">
           <p className="text-[11px] font-semibold text-text-faint uppercase tracking-wider mb-3">By Business</p>
           {bizSplit.map((biz, i) => (
             <div key={biz.name} className="flex items-center gap-2.5 mb-2">
@@ -98,6 +145,83 @@ export function KPIDetailModal({ kpiType, onClose }: { kpiType: KPIType | null; 
               <span className="font-mono text-xs text-text-tertiary w-16 text-right">{formatCurrency(biz.amount)}</span>
             </div>
           ))}
+        </div>
+      )}
+
+      {(kpiType === "netProfit" || kpiType === "takeHome") && (
+        <div className="mb-5">
+          <p className="text-[11px] font-semibold text-text-faint uppercase tracking-wider mb-3">Breakdown</p>
+          <div className="bg-bg rounded-[12px] p-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-text-secondary">Revenue</span>
+              <span className="font-mono text-success">+{formatCurrency(totalRevenue)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-text-secondary">Expenses</span>
+              <span className="font-mono text-danger">−{formatCurrency(totalExpensesVal)}</span>
+            </div>
+            {kpiType === "takeHome" && (
+              <div className="flex justify-between text-sm">
+                <span className="text-text-secondary">Payroll</span>
+                <span className="font-mono text-danger">−{formatCurrency(totalPayroll)}</span>
+              </div>
+            )}
+            <div className="border-t border-border pt-2 flex justify-between text-sm font-semibold">
+              <span className="text-text-primary">{KPI_LABELS[kpiType]}</span>
+              <span className={`font-mono ${value >= 0 ? "text-success" : "text-danger"}`}>{formatCurrency(value)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {kpiType === "revenue" && (
+        <div>
+          <p className="text-[11px] font-semibold text-text-faint uppercase tracking-wider mb-3">Entries ({sortedRevenue.length})</p>
+          {sortedRevenue.length === 0 ? (
+            <p className="text-xs text-text-muted">No revenue entries yet.</p>
+          ) : (
+            <div className="max-h-72 overflow-y-auto pr-1 -mr-1 space-y-1">
+              {sortedRevenue.map((entry) => (
+                <div key={entry.id} className="flex items-center gap-2 py-2 border-b border-border last:border-0">
+                  <span className="font-mono text-[11px] text-text-muted w-16 shrink-0">{formatShortDate(entry.date)}</span>
+                  <span className="font-mono text-xs text-text-primary font-semibold w-20 shrink-0 text-right">{formatCurrency(entry.amount)}</span>
+                  <SourceBadge source={entry.source} />
+                  <span className="text-xs text-text-tertiary flex-1 truncate" title={entry.description}>{entry.description || "—"}</span>
+                  <span className="text-[10px] text-text-faint shrink-0 truncate max-w-[80px]">{bizName(entry.businessId)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {kpiType === "expenses" && (
+        <div>
+          <p className="text-[11px] font-semibold text-text-faint uppercase tracking-wider mb-3">By Category</p>
+          {expensesByCategory.length === 0 ? (
+            <p className="text-xs text-text-muted">No expenses yet.</p>
+          ) : (
+            <div className="max-h-72 overflow-y-auto pr-1 -mr-1 space-y-3">
+              {expensesByCategory.map((grp) => (
+                <div key={grp.category}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">{grp.category}</span>
+                    <span className="font-mono text-xs text-text-primary font-semibold">{formatCurrency(grp.subtotal)}</span>
+                  </div>
+                  <div className="space-y-1">
+                    {grp.items.map((e) => (
+                      <div key={e.id} className="flex items-center gap-2 py-1.5 pl-2 border-l-2 border-border">
+                        <span className="font-mono text-xs text-text-primary w-20 shrink-0 text-right">{formatCurrency(e.amount)}</span>
+                        <SourceBadge source={e.source} />
+                        <span className="text-xs text-text-tertiary flex-1 truncate" title={e.name}>{e.name}</span>
+                        <span className="text-[10px] text-text-faint shrink-0 truncate max-w-[80px]">{bizName(e.businessId)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </Modal>

@@ -12,11 +12,11 @@ import { DecideStage } from "./stages/DecideStage";
 import { ActStage } from "./stages/ActStage";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, X, XCircle } from "lucide-react";
 import type { OODADecision, DecisionStage, FinancialSnapshot } from "@/lib/data/ooda-types";
 
 export function OODAModal() {
-  const { activeDecisionId, activeStage, isModalOpen, closeModal, setStage } = useOODAStore();
+  const { activeDecisionId, activeStage, isModalOpen, closeModal, setStage, withdrawDecision } = useOODAStore();
   const { employees } = useFinancialStore();
   const [decision, setDecision] = useState<OODADecision | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -74,9 +74,24 @@ export function OODAModal() {
           </Button>
           <h2 className="text-lg font-bold text-text-primary">{decision?.title ?? "Loading..."}</h2>
         </div>
-        <button onClick={closeModal} className="w-8 h-8 flex items-center justify-center rounded-[8px] bg-surface-elevated text-text-muted hover:text-text-secondary transition-colors">
-          <X className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          {decision?.status === "in_progress" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-warning hover:text-warning"
+              onClick={async () => {
+                if (!confirm(`Withdraw "${decision.title}"? It will be marked as cancelled but remain in the timeline for audit.`)) return;
+                await withdrawDecision(decision.id);
+              }}
+            >
+              <XCircle className="w-3.5 h-3.5" /> Withdraw
+            </Button>
+          )}
+          <button onClick={closeModal} className="w-8 h-8 flex items-center justify-center rounded-[8px] bg-surface-elevated text-text-muted hover:text-text-secondary transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Stepper */}

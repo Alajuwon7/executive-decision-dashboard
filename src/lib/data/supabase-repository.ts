@@ -75,6 +75,7 @@ function mapExpense(row: any): Expense {
     frequency: row.frequency ?? "monthly",
     isActive: row.is_active ?? true,
     createdAt: row.created_at,
+    source: row.source ?? "manual",
   };
 }
 
@@ -520,6 +521,13 @@ export const supabaseRepository: DataRepository = {
     if (error) throw error;
     notifyListeners();
     return mapOODADecision(data);
+  },
+
+  async deleteOODADecision(id: string) {
+    const supabase = createClient();
+    const { error } = await supabase.from("ooda_decisions").delete().eq("id", id);
+    if (error) throw error;
+    notifyListeners();
   },
 
   async addDecisionLogEntry(input: CreateDecisionLogEntry) {
