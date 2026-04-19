@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils/formatters";
 import { AlertCard } from "./AlertCard";
 
 export function AlertBell() {
-  const { alerts, isBellOpen, toggleBell, closeBell, fetchAlerts, markAsRead, dismissAlert } = usePulseStore();
+  const { alerts, isBellOpen, toggleBell, closeBell, fetchAlerts, markAsRead, dismissAlert, subscribeToAlerts } = usePulseStore();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchAlerts();
-  }, [fetchAlerts]);
+    const unsubscribe = subscribeToAlerts();
+    return unsubscribe;
+  }, [fetchAlerts, subscribeToAlerts]);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {

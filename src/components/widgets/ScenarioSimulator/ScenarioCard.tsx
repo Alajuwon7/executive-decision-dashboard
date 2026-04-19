@@ -1,4 +1,5 @@
 "use client";
+import { memo } from "react";
 import { Trash2, Eye, GitCompare } from "lucide-react";
 import type { Scenario } from "@/lib/data/types";
 import { formatCompactCurrency } from "@/lib/utils/currency";
@@ -12,7 +13,7 @@ interface Props {
   isInCompare: boolean;
 }
 
-export function ScenarioCard({ scenario, onOpen, onCompare, onDelete, isInCompare }: Props) {
+export const ScenarioCard = memo(function ScenarioCard({ scenario, onOpen, onCompare, onDelete, isInCompare }: Props) {
   const surplus = scenario.projectedOutcome?.monthlySurplus ?? 0;
   const surplusDelta = scenario.projectedOutcome?.surplusDelta ?? 0;
   const topProb = scenario.monteCarloResults?.goalProbabilities[0];
@@ -75,4 +76,4 @@ export function ScenarioCard({ scenario, onOpen, onCompare, onDelete, isInCompar
       </div>
     </div>
   );
-}
+});

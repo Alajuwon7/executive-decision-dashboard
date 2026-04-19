@@ -48,7 +48,7 @@ export function DashboardGrid({ children, defaultLayouts }: DashboardGridProps) 
   const layouts = useDashboardStore((s) => s.layouts);
   const setLayouts = useDashboardStore((s) => s.setLayouts);
   const loadLayout = useDashboardStore((s) => s.loadLayout);
-  const { width, mounted } = useContainerWidth({ initialWidth: 1200 });
+  const { width, containerRef } = useContainerWidth({ initialWidth: 1200 });
   const layoutLoaded = useRef(false);
   const changeCount = useRef(0);
 
@@ -75,21 +75,23 @@ export function DashboardGrid({ children, defaultLayouts }: DashboardGridProps) 
   }, [layouts, defaultLayouts]);
 
   return (
-    <ResponsiveGridLayout
-      className="layout"
-      width={width}
-      layouts={activeLayouts}
-      breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
-      cols={{ lg: 12, md: 10, sm: 6, xs: 4 }}
-      rowHeight={80}
-      containerPadding={[0, 0]}
-      margin={[16, 16]}
-      autoSize
-      onLayoutChange={handleLayoutChange}
-      dragConfig={{ enabled: true, handle: ".drag-handle" }}
-      resizeConfig={{ enabled: true }}
-    >
-      {children}
-    </ResponsiveGridLayout>
+    <div ref={containerRef}>
+      <ResponsiveGridLayout
+        className="layout"
+        width={width}
+        layouts={activeLayouts}
+        breakpoints={{ lg: 768, md: 640, sm: 480, xs: 0 }}
+        cols={{ lg: 12, md: 10, sm: 6, xs: 4 }}
+        rowHeight={80}
+        containerPadding={[0, 0]}
+        margin={[16, 16]}
+        autoSize
+        onLayoutChange={handleLayoutChange}
+        dragConfig={{ enabled: true, handle: ".drag-handle" }}
+        resizeConfig={{ enabled: true }}
+      >
+        {children}
+      </ResponsiveGridLayout>
+    </div>
   );
 }

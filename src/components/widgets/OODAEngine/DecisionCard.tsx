@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils/formatters";
@@ -34,7 +34,7 @@ interface DecisionCardProps {
   onContinue: () => void;
 }
 
-export function DecisionCard({ decision, onContinue }: DecisionCardProps) {
+export const DecisionCard = memo(function DecisionCard({ decision, onContinue }: DecisionCardProps) {
   const Icon = TYPE_ICONS[decision.type] ?? HelpCircle;
   const stageIndex = STAGE_ORDER[decision.stage] ?? 0;
   const [menuOpen, setMenuOpen] = useState(false);
@@ -132,4 +132,4 @@ export function DecisionCard({ decision, onContinue }: DecisionCardProps) {
       </div>
     </div>
   );
-}
+});

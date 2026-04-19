@@ -13,6 +13,7 @@ interface DashboardState {
   setMaximized: (widgetId: string | null) => void;
   saveLayout: () => void;
   loadLayout: () => void;
+  resetLayout: () => void;
 }
 
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -49,5 +50,11 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   loadLayout: () => {
     const saved = repository.getLayout();
     if (saved) set({ layouts: saved.layouts });
+  },
+
+  resetLayout: () => {
+    if (saveTimeout) clearTimeout(saveTimeout);
+    set({ layouts: {} });
+    repository.saveLayout({ layouts: {} });
   },
 }));

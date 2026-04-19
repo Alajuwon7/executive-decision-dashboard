@@ -1,12 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useOODAStore } from "@/lib/stores/oodaStore";
+import { useFinancialStore } from "@/lib/stores/financialStore";
 import { repository } from "@/lib/data";
 import { AIAnalysisPanel } from "../AIAnalysisPanel";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatCurrency } from "@/lib/utils/currency";
+import { calculateEmployeeROI } from "@/lib/utils/employee-roi";
 import { cn } from "@/lib/utils/formatters";
 import { RefreshCw, AlertTriangle, Shield, Zap, Bot } from "lucide-react";
 import { toast } from "sonner";
@@ -33,6 +35,14 @@ export function OrientStage({ decision, snapshot, onContinue, onRefresh }: Orien
         ? snapshot.employees.find((e) => e.id === decision.relatedEmployeeId)
         : null;
 
+      const allEmployees = useFinancialStore.getState().employees;
+      const fullEmployee = decision.relatedEmployeeId
+        ? allEmployees.find((e) => e.id === decision.relatedEmployeeId)
+        : null;
+      const employeeROI = fullEmployee && decision.type === "termination"
+        ? calculateEmployeeROI(fullEmployee, allEmployees)
+        : null;
+
       const res = await fetch("/api/claude", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -41,6 +51,7 @@ export function OrientStage({ decision, snapshot, onContinue, onRefresh }: Orien
           decisionType: decision.type,
           snapshot,
           employee: relatedEmployee,
+          employeeROI,
         }),
       });
 

@@ -14,7 +14,7 @@ When analyzing purchase decisions, you evaluate:
 
 Always respond in valid JSON matching the requested schema. No markdown, no preamble, no explanation outside the JSON structure.`;
 
-export function buildOrientPrompt(type: string, snapshot: any, employee?: any): string {
+export function buildOrientPrompt(type: string, snapshot: any, employee?: any, employeeROI?: any): string {
   if (type === "termination") {
     return `Given the following business snapshot and employee data, provide a termination assessment.
 
@@ -23,6 +23,7 @@ ${JSON.stringify(snapshot, null, 2)}
 
 EMPLOYEE UNDER REVIEW:
 ${JSON.stringify(employee, null, 2)}
+${employeeROI ? `\nEMPLOYEE ROI SCORE (factor this into your risk + recommendation — lower ROI suggests termination is lower-risk):\n${JSON.stringify(employeeROI, null, 2)}` : ""}
 
 Respond with this exact JSON structure:
 {

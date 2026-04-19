@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
@@ -22,6 +23,17 @@ const anthropic = new Anthropic({
 type ActionKind = "orient" | "decide" | "what_would_it_take" | "pattern_analysis";
 const VALID_ACTIONS: ActionKind[] = ["orient", "decide", "what_would_it_take", "pattern_analysis"];
 
+const requestSchema = z.object({
+  action: z.enum(VALID_ACTIONS as [ActionKind, ...ActionKind[]]),
+  decisionType: z.string().optional(),
+  snapshot: z.record(z.string(), z.unknown()).optional(),
+  employee: z.record(z.string(), z.unknown()).nullable().optional(),
+  employeeROI: z.record(z.string(), z.unknown()).nullable().optional(),
+  orientAnalysis: z.record(z.string(), z.unknown()).optional(),
+  goal: z.record(z.string(), z.unknown()).optional(),
+  feasibility: z.record(z.string(), z.unknown()).optional(),
+});
+
 const MAX_PAYLOAD_BYTES = 50 * 1024;
 const RATE_LIMIT_PER_HOUR = 20;
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -39,10 +51,10 @@ function checkRateLimit(userId: string): boolean {
 }
 
 function buildPrompt(action: ActionKind, body: any): string {
-  const { decisionType, snapshot, employee, orientAnalysis, goal, feasibility } = body;
+  const { decisionType, snapshot, employee, employeeROI, orientAnalysis, goal, feasibility } = body;
   switch (action) {
     case "orient":
-      return buildOrientPrompt(decisionType, snapshot, employee);
+      return buildOrientPrompt(decisionType, snapshot, employee, employeeROI);
     case "decide":
       return buildDecidePrompt(orientAnalysis, snapshot);
     case "what_would_it_take":
@@ -88,14 +100,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Request too large" }, { status: 413 });
     }
 
-    const body = await request.json();
-    const action = body.action as string;
-
-    if (!action || !VALID_ACTIONS.includes(action as ActionKind)) {
-      return NextResponse.json({ error: "Invalid or missing action" }, { status: 400 });
+    const raw = await request.json();
+    const validation = requestSchema.safeParse(raw);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Invalid request", issues: validation.error.issues },
+        { status: 400 }
+      );
     }
+    const body = validation.data;
+    const action = body.action;
 
-    const userPrompt = buildPrompt(action as ActionKind, body);
+    const userPrompt = buildPrompt(action, body);
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
@@ -114,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     let parsed: any;
     try {
-      parsed = parseResponse(action as ActionKind, rawText);
+      parsed = parseResponse(action, rawText);
     } catch {
       const retryMessage = await anthropic.messages.create({
         model: "claude-sonnet-4-20250514",
@@ -134,7 +150,7 @@ export async function POST(request: NextRequest) {
       if (!retryBlock || retryBlock.type !== "text") {
         return NextResponse.json({ error: "Failed to get valid JSON from Claude" }, { status: 500 });
       }
-      parsed = parseResponse(action as ActionKind, retryBlock.text);
+      parsed = parseResponse(action, retryBlock.text);
     }
 
     return NextResponse.json({

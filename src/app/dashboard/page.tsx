@@ -51,7 +51,7 @@ export default function DashboardPage() {
   return (
     <div>
       <TopBar onAddEntry={handleAddEntry} />
-      <div className="p-4">
+      <div className="px-6 py-4">
         {isLoading ? (
           <div className="grid grid-cols-4 gap-3">
             <MetricSkeleton /><MetricSkeleton /><MetricSkeleton /><MetricSkeleton />

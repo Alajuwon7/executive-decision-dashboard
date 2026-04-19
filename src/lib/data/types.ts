@@ -232,37 +232,6 @@ export interface CreateGoalMilestone {
   sortOrder?: number;
 }
 
-export type PatternAlertKind =
-  | "spending_trend"
-  | "revenue_momentum"
-  | "goal_pacing"
-  | "anomaly"
-  | "ratio_breach";
-
-export type PatternAlertSeverity = "info" | "warning" | "critical";
-
-export interface PatternAlert {
-  id: string;
-  type: PatternAlertKind;
-  severity: PatternAlertSeverity;
-  title: string;
-  message: string;
-  data: Record<string, any>;
-  relatedGoalId: string | null;
-  isRead: boolean;
-  isDismissed: boolean;
-  createdAt: string;
-}
-
-export interface CreatePatternAlert {
-  type: PatternAlertKind;
-  severity: PatternAlertSeverity;
-  title: string;
-  message: string;
-  data?: Record<string, any>;
-  relatedGoalId?: string | null;
-}
-
 export interface WhatWouldItTakeCard {
   id: string;
   title: string;

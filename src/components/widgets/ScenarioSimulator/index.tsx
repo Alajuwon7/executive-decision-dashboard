@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { useScenarioStore } from "@/lib/stores/scenarioStore";
 import { ScenarioCard } from "./ScenarioCard";
 import { ScenarioBuilder } from "./ScenarioBuilder";
-import { ComparisonView } from "./ComparisonView";
+import dynamic from "next/dynamic";
+const ComparisonView = dynamic(() => import("./ComparisonView").then((m) => m.ComparisonView), { ssr: false });
 
 export function ScenarioSimulator() {
   const {

@@ -11,7 +11,8 @@ import { buildFinancialSnapshot } from "@/lib/utils/snapshot";
 import { formatCompactCurrency } from "@/lib/utils/currency";
 import { cn } from "@/lib/utils/formatters";
 import { ModificationControls } from "./ModificationControls";
-import { MonteCarloChart } from "./MonteCarloChart";
+import dynamic from "next/dynamic";
+const MonteCarloChart = dynamic(() => import("./MonteCarloChart").then((m) => m.MonteCarloChart), { ssr: false });
 import type { MonteCarloResults } from "@/lib/data/types";
 
 export function ScenarioBuilder() {

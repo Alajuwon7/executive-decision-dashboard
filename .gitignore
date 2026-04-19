@@ -15,7 +15,11 @@
 
 # next.js
 /.next/
+/.next */
 /out/
+
+# deno (not used in this project)
+deno.lock
 
 # production
 /build

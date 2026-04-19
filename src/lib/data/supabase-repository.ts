@@ -13,8 +13,6 @@ import type {
   CreateGoal,
   GoalMilestone,
   CreateGoalMilestone,
-  PatternAlert,
-  CreatePatternAlert,
   PersonalDraw,
   Scenario,
   CreateScenario,
@@ -156,21 +154,6 @@ function mapMilestone(row: any): GoalMilestone {
     isCompleted: row.is_completed ?? false,
     completedAt: row.completed_at ?? null,
     sortOrder: row.sort_order ?? 0,
-    createdAt: row.created_at,
-  };
-}
-
-function mapPatternAlert(row: any): PatternAlert {
-  return {
-    id: row.id,
-    type: row.type,
-    severity: row.severity,
-    title: row.title,
-    message: row.message,
-    data: row.data ?? {},
-    relatedGoalId: row.related_goal_id ?? null,
-    isRead: row.is_read ?? false,
-    isDismissed: row.is_dismissed ?? false,
     createdAt: row.created_at,
   };
 }
@@ -676,46 +659,6 @@ export const supabaseRepository: DataRepository = {
   async deleteMilestone(id: string) {
     const supabase = createClient();
     const { error } = await supabase.from("goal_milestones").delete().eq("id", id);
-    if (error) throw error;
-    notifyListeners();
-  },
-
-  async getPatternAlerts() {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("pattern_alerts")
-      .select("*")
-      .eq("is_dismissed", false)
-      .order("created_at", { ascending: false });
-    if (error) throw error;
-    return (data ?? []).map(mapPatternAlert);
-  },
-
-  async createPatternAlert(input: CreatePatternAlert) {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("pattern_alerts")
-      .insert({
-        type: input.type,
-        severity: input.severity,
-        title: input.title,
-        message: input.message,
-        data: input.data ?? {},
-        related_goal_id: input.relatedGoalId ?? null,
-      })
-      .select()
-      .single();
-    if (error) throw error;
-    notifyListeners();
-    return mapPatternAlert(data);
-  },
-
-  async dismissPatternAlert(id: string) {
-    const supabase = createClient();
-    const { error } = await supabase
-      .from("pattern_alerts")
-      .update({ is_dismissed: true })
-      .eq("id", id);
     if (error) throw error;
     notifyListeners();
   },

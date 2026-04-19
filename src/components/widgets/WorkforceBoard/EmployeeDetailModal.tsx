@@ -8,6 +8,7 @@ import { useFinancialStore } from "@/lib/stores/financialStore";
 import { CompensationSliders } from "./CompensationSliders";
 import { ImpactPreview } from "./ImpactPreview";
 import { calculateMonthlyCost } from "@/lib/utils/workforce-calculations";
+import { calculateEmployeeROI } from "@/lib/utils/employee-roi";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatDate } from "@/lib/utils/formatters";
 import { Zap, Pencil } from "lucide-react";
@@ -42,6 +43,8 @@ export function EmployeeDetailModal() {
   const monthlyCost = calculateMonthlyCost(employee);
   const statusInfo = STATUS_BADGE[employee.status] ?? STATUS_BADGE.active;
   const isMyers = business?.name?.toLowerCase().includes("myers");
+
+  const roi = useMemo(() => calculateEmployeeROI(employee, employees), [employee, employees]);
 
   const handleClose = () => setSelectedEmployee(null);
 
@@ -91,6 +94,35 @@ export function EmployeeDetailModal() {
 
       {/* Impact Preview */}
       <ImpactPreview employee={employee} onSave={handleClose} />
+
+      {/* ROI Breakdown */}
+      <div className="mt-5 pt-5 border-t border-border">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-semibold text-text-faint uppercase tracking-wider">ROI Score</p>
+          <div className="flex items-center gap-2">
+            <span className={`font-mono text-base font-bold ${roi.color}`}>{roi.total}</span>
+            <Badge variant="info" className="text-[10px]">{roi.label}</Badge>
+          </div>
+        </div>
+        <div className="grid grid-cols-4 gap-2 text-center">
+          <div className="bg-surface-elevated rounded-button px-2 py-2">
+            <p className="text-[10px] text-text-faint uppercase tracking-wider">Activity</p>
+            <p className="font-mono text-sm font-semibold text-text-primary">{roi.activityScore}</p>
+          </div>
+          <div className="bg-surface-elevated rounded-button px-2 py-2">
+            <p className="text-[10px] text-text-faint uppercase tracking-wider">Tenure</p>
+            <p className="font-mono text-sm font-semibold text-text-primary">{roi.tenureScore}</p>
+          </div>
+          <div className="bg-surface-elevated rounded-button px-2 py-2">
+            <p className="text-[10px] text-text-faint uppercase tracking-wider">Role</p>
+            <p className="font-mono text-sm font-semibold text-text-primary">{roi.roleWeightScore}</p>
+          </div>
+          <div className="bg-surface-elevated rounded-button px-2 py-2">
+            <p className="text-[10px] text-text-faint uppercase tracking-wider">Cost</p>
+            <p className="font-mono text-sm font-semibold text-text-primary">{roi.costScore}</p>
+          </div>
+        </div>
+      </div>
 
       {/* Performance Notes */}
       {employee.performanceNotes && (

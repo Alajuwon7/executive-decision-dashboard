@@ -12,8 +12,6 @@ import type {
   CreateGoal,
   GoalMilestone,
   CreateGoalMilestone,
-  PatternAlert,
-  CreatePatternAlert,
   PersonalDraw,
   Scenario,
   CreateScenario,
@@ -68,9 +66,6 @@ export interface DataRepository {
   updateMilestone(id: string, data: Partial<GoalMilestone>): Promise<GoalMilestone>;
   deleteMilestone(id: string): Promise<void>;
 
-  getPatternAlerts(): Promise<PatternAlert[]>;
-  createPatternAlert(data: CreatePatternAlert): Promise<PatternAlert>;
-  dismissPatternAlert(id: string): Promise<void>;
 
   getPersonalDraw(): Promise<PersonalDraw>;
   setPersonalDraw(draw: PersonalDraw): Promise<void>;

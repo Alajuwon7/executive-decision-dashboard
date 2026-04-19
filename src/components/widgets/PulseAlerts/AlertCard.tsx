@@ -1,4 +1,5 @@
 "use client";
+import { memo } from "react";
 import { X, AlertTriangle, Activity, TrendingDown, TrendingUp, Target, AlertCircle, Clock } from "lucide-react";
 import type { PulseAlert } from "@/lib/data/types";
 import { cn } from "@/lib/utils/formatters";
@@ -26,7 +27,7 @@ interface Props {
   onDismiss: () => void;
 }
 
-export function AlertCard({ alert, onRead, onDismiss }: Props) {
+export const AlertCard = memo(function AlertCard({ alert, onRead, onDismiss }: Props) {
   const Icon = typeIcon[alert.type] ?? AlertCircle;
   const cls = severityClass[alert.severity];
 
@@ -65,4 +66,4 @@ export function AlertCard({ alert, onRead, onDismiss }: Props) {
       </div>
     </div>
   );
-}
+});

@@ -13,8 +13,6 @@ import type {
   CreateGoal,
   GoalMilestone,
   CreateGoalMilestone,
-  PatternAlert,
-  CreatePatternAlert,
   PersonalDraw,
   Scenario,
   CreateScenario,
@@ -40,7 +38,6 @@ const KEYS = {
   decisionLog: "edi_decision_log",
   goals: "edi_goals",
   milestones: "edi_goal_milestones",
-  patternAlerts: "edi_pattern_alerts",
   personalDraw: "edi_personal_draw",
   scenarios: "edi_scenarios",
   pulseAlerts: "edi_pulse_alerts",
@@ -380,39 +377,6 @@ export const localRepository: DataRepository = {
   async deleteMilestone(id: string) {
     const milestones = getItem<GoalMilestone>(KEYS.milestones);
     setItem(KEYS.milestones, milestones.filter((m) => m.id !== id));
-    notifyListeners();
-  },
-
-  async getPatternAlerts() {
-    return getItem<PatternAlert>(KEYS.patternAlerts);
-  },
-
-  async createPatternAlert(input: CreatePatternAlert) {
-    const alerts = getItem<PatternAlert>(KEYS.patternAlerts);
-    const newAlert: PatternAlert = {
-      id: generateId(),
-      type: input.type,
-      severity: input.severity,
-      title: input.title,
-      message: input.message,
-      data: input.data ?? {},
-      relatedGoalId: input.relatedGoalId ?? null,
-      isRead: false,
-      isDismissed: false,
-      createdAt: new Date().toISOString(),
-    };
-    alerts.push(newAlert);
-    setItem(KEYS.patternAlerts, alerts);
-    notifyListeners();
-    return newAlert;
-  },
-
-  async dismissPatternAlert(id: string) {
-    const alerts = getItem<PatternAlert>(KEYS.patternAlerts);
-    const idx = alerts.findIndex((a) => a.id === id);
-    if (idx === -1) return;
-    alerts[idx] = { ...alerts[idx], isDismissed: true };
-    setItem(KEYS.patternAlerts, alerts);
     notifyListeners();
   },
 

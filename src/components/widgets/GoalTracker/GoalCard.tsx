@@ -1,4 +1,5 @@
 "use client";
+import { memo } from "react";
 import { Sparkles, Link2, Building2 } from "lucide-react";
 import type { Goal, FeasibilityResult, GoalStatus } from "@/lib/data/types";
 import { formatCompactCurrency } from "@/lib/utils/currency";
@@ -45,7 +46,7 @@ function OwnerBadge({ owner }: { owner: Goal["owner"] }) {
   );
 }
 
-export function GoalCard({ goal, feasibility, onOpenDetail, onRequestWWIT }: GoalCardProps) {
+export const GoalCard = memo(function GoalCard({ goal, feasibility, onOpenDetail, onRequestWWIT }: GoalCardProps) {
   const target = goal.targetValue ?? 0;
   const pct = target > 0 ? (goal.currentValue / target) * 100 : 0;
   const isAtRisk = goal.status === "at_risk" || goal.status === "behind";
@@ -103,4 +104,4 @@ export function GoalCard({ goal, feasibility, onOpenDetail, onRequestWWIT }: Goa
       </div>
     </div>
   );
-}
+});

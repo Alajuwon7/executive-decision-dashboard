@@ -4,7 +4,6 @@ import type {
   CreateGoal,
   GoalMilestone,
   CreateGoalMilestone,
-  PatternAlert,
   FeasibilityResult,
   WhatWouldItTakeCard,
   PersonalDraw,
@@ -20,7 +19,6 @@ export type StatusFilter = GoalStatus | "all";
 interface GoalState {
   // Data
   milestones: GoalMilestone[];
-  patternAlerts: PatternAlert[];
 
   // Filters
   ownerFilter: OwnerFilter;
@@ -41,7 +39,6 @@ interface GoalState {
 
   // Actions
   fetchMilestones: () => Promise<void>;
-  fetchPatternAlerts: () => Promise<void>;
   setOwnerFilter: (f: OwnerFilter) => void;
   setStatusFilter: (f: StatusFilter) => void;
   openGoalDetail: (id: string) => void;
@@ -64,13 +61,11 @@ interface GoalState {
   deleteGoal: (id: string) => Promise<void>;
   createMilestone: (data: CreateGoalMilestone) => Promise<void>;
   toggleMilestone: (id: string, isCompleted: boolean) => Promise<void>;
-  dismissAlert: (id: string) => Promise<void>;
   setPersonalDraw: (draw: PersonalDraw) => Promise<void>;
 }
 
 export const useGoalStore = create<GoalState>((set, get) => ({
   milestones: [],
-  patternAlerts: [],
   ownerFilter: "all",
   statusFilter: "all",
   selectedGoalId: null,
@@ -86,11 +81,6 @@ export const useGoalStore = create<GoalState>((set, get) => ({
   fetchMilestones: async () => {
     const milestones = await repository.getMilestones();
     set({ milestones });
-  },
-
-  fetchPatternAlerts: async () => {
-    const patternAlerts = await repository.getPatternAlerts();
-    set({ patternAlerts });
   },
 
   setOwnerFilter: (f) => set({ ownerFilter: f }),
@@ -166,14 +156,6 @@ export const useGoalStore = create<GoalState>((set, get) => ({
     }
   },
 
-  dismissAlert: async (id) => {
-    try {
-      await repository.dismissPatternAlert(id);
-      await get().fetchPatternAlerts();
-    } catch {
-      toast.error("Failed to dismiss alert");
-    }
-  },
 
   setPersonalDraw: async (draw) => {
     try {

@@ -3,9 +3,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, GitBranch } from "lucide-react";
 import { useFinancialStore } from "@/lib/stores/financialStore";
 import { useGoalStore } from "@/lib/stores/goalStore";
-import { repository } from "@/lib/data";
+import { usePulseStore } from "@/lib/stores/pulseStore";
 import { calculateFeasibility, determineGoalStatus } from "@/lib/utils/feasibility";
-import { detectPatterns } from "@/lib/utils/patterns";
 import { buildFinancialSnapshot } from "@/lib/utils/snapshot";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
@@ -15,7 +14,8 @@ import { OwnerTabs } from "./OwnerTabs";
 import { GoalGrid } from "./GoalGrid";
 import { GoalDetailModal } from "./GoalDetailModal";
 import { PatternAlerts } from "./PatternAlerts";
-import { DependencyMap } from "./DependencyMap";
+import dynamic from "next/dynamic";
+const DependencyMap = dynamic(() => import("./DependencyMap").then((m) => m.DependencyMap), { ssr: false });
 import { toast } from "sonner";
 import type { Goal, FeasibilityResult, Employee, Expense, RevenueEntry, PersonalDraw } from "@/lib/data/types";
 
@@ -48,7 +48,6 @@ export function GoalTracker() {
     isAddFormOpen,
     isDetailModalOpen,
     feasibilityCache,
-    patternAlerts,
     isDependencyMapOpen,
     openAddForm,
     closeAddForm,
@@ -59,9 +58,9 @@ export function GoalTracker() {
     setGeneratingWWIT,
     toggleDependencyMap,
     fetchMilestones,
-    fetchPatternAlerts,
     updateGoal,
   } = useGoalStore();
+  const pulseAlerts = usePulseStore((s) => s.alerts);
 
   const milestones = useGoalStore((s) => s.milestones);
   const wwitCache = useGoalStore((s) => s.wwitCache);
@@ -72,8 +71,7 @@ export function GoalTracker() {
   // Initial fetch for goal-specific data
   useEffect(() => {
     fetchMilestones();
-    fetchPatternAlerts();
-  }, [fetchMilestones, fetchPatternAlerts]);
+  }, [fetchMilestones]);
 
   // Debounced feasibility + pattern recalc
   useEffect(() => {
@@ -110,23 +108,6 @@ export function GoalTracker() {
         updateGoal(u.id, { status: u.status });
       }
 
-      // Pattern detection
-      try {
-        const existing = await repository.getPatternAlerts();
-        const candidates = detectPatterns({
-          expenses,
-          revenueEntries,
-          employees,
-          goals,
-          existingAlerts: existing,
-        });
-        for (const c of candidates) {
-          await repository.createPatternAlert(c);
-        }
-        if (candidates.length > 0) await fetchPatternAlerts();
-      } catch (err) {
-        console.error("Pattern detection failed", err);
-      }
     }, 500);
 
     return () => clearTimeout(timer);
@@ -139,8 +120,23 @@ export function GoalTracker() {
     milestones,
     setFeasibilityBatch,
     updateGoal,
-    fetchPatternAlerts,
   ]);
+
+  const goalRelevantAlerts = useMemo(
+    () =>
+      pulseAlerts.filter(
+        (a) =>
+          !a.isDismissed &&
+          (a.type === "goal_pacing" ||
+            a.type === "goal_at_risk" ||
+            a.type === "spending_trend" ||
+            a.type === "revenue_momentum" ||
+            a.type === "revenue_drop" ||
+            a.type === "anomaly" ||
+            a.type === "ratio_breach")
+      ),
+    [pulseAlerts]
+  );
 
   const filteredGoals = useMemo(() => {
     let list = goals.filter((g) => g.status !== "abandoned");
@@ -256,7 +252,7 @@ export function GoalTracker() {
         onAdd={openAddForm}
       />
 
-      <PatternAlerts alerts={patternAlerts} />
+      <PatternAlerts alerts={goalRelevantAlerts} />
 
       <Modal isOpen={isAddFormOpen} onClose={closeAddForm} title="Add Goal">
         <AddGoalForm onClose={closeAddForm} />

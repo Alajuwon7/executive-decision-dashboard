@@ -1,33 +1,37 @@
 "use client";
 import { useState } from "react";
-import { ChevronDown, ChevronUp, X, AlertTriangle, TrendingUp, Target, Activity } from "lucide-react";
-import type { PatternAlert } from "@/lib/data/types";
+import { ChevronDown, ChevronUp, X, AlertTriangle, TrendingUp, Target, Activity, AlertCircle, Clock } from "lucide-react";
+import type { PulseAlert } from "@/lib/data/types";
 import { useGoalStore } from "@/lib/stores/goalStore";
+import { usePulseStore } from "@/lib/stores/pulseStore";
 import { cn } from "@/lib/utils/formatters";
 
-const typeIcon: Record<PatternAlert["type"], any> = {
+const typeIcon: Record<PulseAlert["type"], any> = {
   spending_trend: TrendingUp,
   revenue_momentum: TrendingUp,
+  revenue_drop: TrendingUp,
   goal_pacing: Target,
+  goal_at_risk: AlertCircle,
   anomaly: AlertTriangle,
   ratio_breach: Activity,
+  decision_stalled: Clock,
 };
 
-const severityClass: Record<PatternAlert["severity"], string> = {
+const severityClass: Record<PulseAlert["severity"], string> = {
   info: "border-blue-500/40 bg-blue-500/10 text-blue-300",
   warning: "border-accent/40 bg-accent-subtle text-accent",
   critical: "border-danger/40 bg-danger/10 text-danger",
 };
 
 interface Props {
-  alerts: PatternAlert[];
+  alerts: PulseAlert[];
 }
 
 export function PatternAlerts({ alerts }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const isAlertsExpanded = useGoalStore((s) => s.isAlertsExpanded);
   const toggleAlerts = useGoalStore((s) => s.toggleAlerts);
-  const dismissAlert = useGoalStore((s) => s.dismissAlert);
+  const dismissAlert = usePulseStore((s) => s.dismissAlert);
 
   const visible = alerts.filter((a) => !a.isDismissed);
   const shown = isAlertsExpanded ? visible : visible.slice(0, 3);
