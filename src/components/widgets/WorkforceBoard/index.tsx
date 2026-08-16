@@ -80,6 +80,8 @@ export function WorkforceBoard() {
         <div className="flex border border-border-subtle rounded-button overflow-hidden">
           <button
             onClick={() => setViewMode("grid")}
+            aria-label="Grid view"
+            aria-pressed={viewMode === "grid"}
             className={cn(
               "p-1.5 transition-colors",
               viewMode === "grid" ? "bg-surface-elevated text-text-primary" : "text-text-faint hover:text-text-muted"
@@ -89,6 +91,8 @@ export function WorkforceBoard() {
           </button>
           <button
             onClick={() => setViewMode("list")}
+            aria-label="List view"
+            aria-pressed={viewMode === "list"}
             className={cn(
               "p-1.5 transition-colors",
               viewMode === "list" ? "bg-surface-elevated text-text-primary" : "text-text-faint hover:text-text-muted"

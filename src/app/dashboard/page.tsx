@@ -18,7 +18,7 @@ import { GoalTracker } from "@/components/widgets/GoalTracker";
 import { ScenarioSimulator } from "@/components/widgets/ScenarioSimulator";
 import { PulseAlerts } from "@/components/widgets/PulseAlerts";
 import { Integrations } from "@/components/widgets/Integrations";
-import { MetricSkeleton } from "@/components/ui/Skeleton";
+import { DashboardSkeleton } from "@/components/layout/DashboardSkeleton";
 import type { LayoutItem } from "@/lib/data/types";
 
 const defaultLayouts: Record<string, LayoutItem[]> = {
@@ -53,9 +53,7 @@ export default function DashboardPage() {
       <TopBar onAddEntry={handleAddEntry} />
       <div className="px-6 py-4">
         {isLoading ? (
-          <div className="grid grid-cols-4 gap-3">
-            <MetricSkeleton /><MetricSkeleton /><MetricSkeleton /><MetricSkeleton />
-          </div>
+          <DashboardSkeleton layout={defaultLayouts.lg} />
         ) : (
           <DashboardGrid defaultLayouts={defaultLayouts}>
             <div key="financial">
