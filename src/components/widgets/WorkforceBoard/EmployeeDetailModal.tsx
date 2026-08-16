@@ -38,13 +38,16 @@ export function EmployeeDetailModal() {
     [businesses, employee]
   );
 
-  if (!employee) return null;
+  const roi = useMemo(
+    () => (employee ? calculateEmployeeROI(employee, employees) : null),
+    [employee, employees]
+  );
+
+  if (!employee || !roi) return null;
 
   const monthlyCost = calculateMonthlyCost(employee);
   const statusInfo = STATUS_BADGE[employee.status] ?? STATUS_BADGE.active;
   const isMyers = business?.name?.toLowerCase().includes("myers");
-
-  const roi = useMemo(() => calculateEmployeeROI(employee, employees), [employee, employees]);
 
   const handleClose = () => setSelectedEmployee(null);
 
