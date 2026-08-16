@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils/formatters";
 import { cn } from "@/lib/utils/formatters";
 import { useOODAStore } from "@/lib/stores/oodaStore";
-import { ArrowRight, Zap, ShoppingCart, UserPlus, Building2, Package, Handshake, HelpCircle, MoreHorizontal, XCircle, Trash2 } from "lucide-react";
+import { repository } from "@/lib/data";
+import { generateDecisionPDF } from "@/lib/utils/export";
+import { toast } from "sonner";
+import { ArrowRight, Zap, ShoppingCart, UserPlus, Building2, Package, Handshake, HelpCircle, MoreHorizontal, XCircle, Trash2, FileText } from "lucide-react";
 import type { OODADecision, DecisionStage } from "@/lib/data/ooda-types";
 
 const TYPE_ICONS: Record<string, any> = {
@@ -55,6 +58,30 @@ export const DecisionCard = memo(function DecisionCard({ decision, onContinue }:
     setMenuOpen(false);
     if (!confirm(`Withdraw "${decision.title}"? It will be marked as cancelled but remain in the timeline for audit.`)) return;
     await withdrawDecision(decision.id);
+  };
+
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateReport = async () => {
+    setIsGenerating(true);
+    try {
+      // The log drives the report's timeline. If it can't be read we still
+      // want the report, so fall back to an empty log rather than aborting.
+      let log: Awaited<ReturnType<typeof repository.getDecisionLog>> = [];
+      try {
+        log = await repository.getDecisionLog(decision.id);
+      } catch {
+        // non-fatal — timeline degrades to the decision's own timestamps
+      }
+      generateDecisionPDF(decision, log);
+      toast.success("OODA report generated");
+    } catch (err: any) {
+      // Log the cause — a silent catch here is what made this hard to diagnose.
+      console.error("OODA report generation failed:", err);
+      toast.error(err?.message ? `Report failed: ${err.message}` : "Could not generate the report");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -122,13 +149,27 @@ export const DecisionCard = memo(function DecisionCard({ decision, onContinue }:
         ))}
       </div>
 
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-text-faint">{formatDate(decision.createdAt)}</span>
-        {decision.status === "in_progress" && (
-          <Button size="sm" variant="ghost" onClick={onContinue}>
-            Continue <ArrowRight className="w-3 h-3" />
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs text-text-faint shrink-0">{formatDate(decision.createdAt)}</span>
+        <div className="flex items-center gap-1">
+          {/* Available on every decision, not just in-progress ones — a report
+              you can only produce while finalising is one you never re-run. */}
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleGenerateReport}
+            isLoading={isGenerating}
+            title="Download the full OODA decision report as a PDF"
+          >
+            <FileText className="w-3 h-3" />
+            Generate OODA Report
           </Button>
-        )}
+          {decision.status === "in_progress" && (
+            <Button size="sm" variant="ghost" onClick={onContinue}>
+              Continue <ArrowRight className="w-3 h-3" />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -60,13 +60,25 @@ export function ActStage({ decision, onComplete }: ActStageProps) {
     }
   };
 
-  const handleExportPDF = () => {
-    generateDecisionPDF({ ...decision, actOutcome: { outcomeNotes } });
+  const handleExportPDF = async () => {
+    let log: Awaited<ReturnType<typeof repository.getDecisionLog>> = [];
+    try {
+      log = await repository.getDecisionLog(decision.id);
+    } catch {
+      // non-fatal — the report's timeline falls back to the decision's own dates
+    }
+    generateDecisionPDF({ ...decision, actOutcome: { outcomeNotes } }, log);
     toast.success("PDF exported");
   };
 
-  const handleCopyMarkdown = () => {
-    const md = generateDecisionMarkdown({ ...decision, actOutcome: { outcomeNotes } });
+  const handleCopyMarkdown = async () => {
+    let log: Awaited<ReturnType<typeof repository.getDecisionLog>> = [];
+    try {
+      log = await repository.getDecisionLog(decision.id);
+    } catch {
+      // non-fatal — the timeline falls back to the decision's own dates
+    }
+    const md = generateDecisionMarkdown({ ...decision, actOutcome: { outcomeNotes } }, log);
     navigator.clipboard.writeText(md).then(() => toast.success("Markdown copied to clipboard"));
   };
 
