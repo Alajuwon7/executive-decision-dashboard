@@ -65,7 +65,9 @@ export function MonteCarloChart({ results }: Props) {
               <XAxis dataKey="bucket" stroke="#525252" fontSize={10} tickFormatter={(v) => formatCompactCurrency(v)} />
               <YAxis stroke="#525252" fontSize={10} />
               <Tooltip
-                contentStyle={{ background: "#141414", border: "1px solid #2A2A2A", fontSize: 11 }}
+                contentStyle={{ background: "#141414", border: "1px solid #404040", borderRadius: "8px", fontSize: 11, boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
+                labelStyle={{ color: "#A3A3A3", marginBottom: "2px" }}
+                itemStyle={{ color: "#FFFFFF" }}
                 formatter={(v: any) => [v, "count"]}
                 labelFormatter={(v) => `~${formatCompactCurrency(Number(v))}`}
               />
