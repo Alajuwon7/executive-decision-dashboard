@@ -2,6 +2,7 @@
 import { GripVertical, ChevronDown, ChevronUp, Maximize2, Minimize2 } from "lucide-react";
 import { cn } from "@/lib/utils/formatters";
 import { useDashboardStore } from "@/lib/stores/dashboardStore";
+import { WidgetErrorBoundary } from "./WidgetErrorBoundary";
 
 interface WidgetWrapperProps {
   id: string;
@@ -32,12 +33,15 @@ export function WidgetWrapper({ id, title, children, actions, className }: Widge
         {actions}
         <button
           onClick={() => toggleCollapse(id)}
+          aria-label={isCollapsed ? `Expand ${title}` : `Collapse ${title}`}
+          aria-expanded={!isCollapsed}
           className="w-7 h-7 flex items-center justify-center rounded-[6px] text-text-faint hover:bg-surface-elevated hover:text-text-muted transition-all"
         >
           {isCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
         </button>
         <button
           onClick={() => setMaximized(isMaximized ? null : id)}
+          aria-label={isMaximized ? `Restore ${title}` : `Maximize ${title}`}
           className="w-7 h-7 flex items-center justify-center rounded-[6px] text-text-faint hover:bg-surface-elevated hover:text-text-muted transition-all"
         >
           {isMaximized ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -55,7 +59,7 @@ export function WidgetWrapper({ id, title, children, actions, className }: Widge
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-8">
           <div className="bg-surface border border-border rounded-card p-6 w-full max-w-6xl max-h-[90vh] overflow-auto">
             {headerContent}
-            {children}
+            <WidgetErrorBoundary title={title}>{children}</WidgetErrorBoundary>
           </div>
         </div>
       </>
@@ -76,7 +80,7 @@ export function WidgetWrapper({ id, title, children, actions, className }: Widge
         "transition-all duration-200",
         isCollapsed ? "max-h-0 opacity-0 overflow-hidden" : "flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-1"
       )}>
-        {children}
+        <WidgetErrorBoundary title={title}>{children}</WidgetErrorBoundary>
       </div>
     </div>
   );
