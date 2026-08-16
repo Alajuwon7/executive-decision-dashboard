@@ -20,11 +20,20 @@ interface ImpactPreviewProps {
 export function ImpactPreview({ employee, onSave, onDiscard }: ImpactPreviewProps) {
   const adjustments = useWorkforceStore((s) => s.adjustments);
   const clearAllAdjustments = useWorkforceStore((s) => s.clearAllAdjustments);
+  const clearAdjustment = useWorkforceStore((s) => s.clearAdjustment);
   const { employees, revenueEntries, expenses, goals, personalDraw, updateEmployee } = useFinancialStore();
 
   const hasAdjustments = employee
     ? !!adjustments[employee.id]
     : Object.keys(adjustments).length > 0;
+
+  // In single-employee mode every projection below must reflect only this
+  // person's pending change — that's exactly what Save will commit.
+  const scopedAdjustments = useMemo(() => {
+    if (!employee) return adjustments;
+    const adj = adjustments[employee.id];
+    return adj ? { [employee.id]: adj } : {};
+  }, [employee, adjustments]);
 
   const impact = useMemo(() => {
     if (employee) {
@@ -43,17 +52,17 @@ export function ImpactPreview({ employee, onSave, onDiscard }: ImpactPreviewProp
   const ratioImpact = useMemo(() => {
     const totalRevenue = calculateTotalRevenue(revenueEntries);
     const currentPayroll = calculateTotalPayroll(employees);
-    const adjustedPayroll = calculateAdjustedPayroll(employees, adjustments);
+    const adjustedPayroll = calculateAdjustedPayroll(employees, scopedAdjustments);
     const currentRatio = calculatePayrollToRevenueRatio(currentPayroll, totalRevenue);
     const newRatio = calculatePayrollToRevenueRatio(adjustedPayroll, totalRevenue);
     return { current: currentRatio, new: newRatio, improved: newRatio < currentRatio };
-  }, [employees, revenueEntries, adjustments]);
+  }, [employees, revenueEntries, scopedAdjustments]);
 
   const goalImpact = useMemo(() => {
     if (!hasAdjustments) return [];
     // Build a simulated employee roster reflecting pending adjustments
     const simulated: Employee[] = employees.map((e) => {
-      const adj = adjustments[e.id];
+      const adj = scopedAdjustments[e.id];
       if (!adj) return e;
       return {
         ...e,
@@ -84,27 +93,33 @@ export function ImpactPreview({ employee, onSave, onDiscard }: ImpactPreviewProp
       });
       return { goal: g, before, after };
     });
-  }, [hasAdjustments, employees, adjustments, goals, revenueEntries, expenses, personalDraw]);
+  }, [hasAdjustments, employees, scopedAdjustments, goals, revenueEntries, expenses, personalDraw]);
 
   if (!hasAdjustments || !impact) return null;
 
   const isIncrease = impact.monthly > 0;
 
   const handleSave = async () => {
-    for (const [empId, adj] of Object.entries(adjustments)) {
-      const updates: any = {};
+    // Single-employee mode commits only that person's pending change; the
+    // aggregate view (no `employee` prop) still commits everything at once.
+    for (const [empId, adj] of Object.entries(scopedAdjustments)) {
+      const updates: Partial<Employee> = {};
       if (adj.rate !== undefined) updates.rate = adj.rate;
       if (adj.hours !== undefined) updates.hoursPerWeek = adj.hours;
       if (Object.keys(updates).length > 0) {
         await updateEmployee(empId, updates);
       }
     }
-    clearAllAdjustments();
+
+    if (employee) clearAdjustment(employee.id);
+    else clearAllAdjustments();
+
     onSave?.();
   };
 
   const handleDiscard = () => {
-    clearAllAdjustments();
+    if (employee) clearAdjustment(employee.id);
+    else clearAllAdjustments();
     onDiscard?.();
   };
 
