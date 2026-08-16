@@ -20,6 +20,11 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+// Single source of truth for the model. Anthropic retires dated model IDs on a
+// published schedule — when one lapses the API returns 404 and every OODA call
+// fails, so keep this in one place and check it when the engine goes quiet.
+const CLAUDE_MODEL = "claude-sonnet-5";
+
 type ActionKind = "orient" | "decide" | "what_would_it_take" | "pattern_analysis";
 const VALID_ACTIONS: ActionKind[] = ["orient", "decide", "what_would_it_take", "pattern_analysis"];
 
@@ -114,9 +119,8 @@ export async function POST(request: NextRequest) {
     const userPrompt = buildPrompt(action, body);
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: CLAUDE_MODEL,
       max_tokens: 4096,
-      temperature: 0.3,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: userPrompt }],
     });
@@ -133,9 +137,8 @@ export async function POST(request: NextRequest) {
       parsed = parseResponse(action, rawText);
     } catch {
       const retryMessage = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: CLAUDE_MODEL,
         max_tokens: 4096,
-        temperature: 0.1,
         system: SYSTEM_PROMPT,
         messages: [
           { role: "user", content: userPrompt },
@@ -161,10 +164,31 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("Claude API error:", error?.message ?? error);
+    // Log the status and API error type, not just the message — a bare message
+    // hides the difference between a retired model (404), a bad key (401), and
+    // a billing problem (400), which all surface identically to the user.
+    console.error(
+      `Claude API error: status=${error?.status ?? "?"} type=${error?.type ?? "?"} :: ${error?.message ?? error}`
+    );
 
     if (error?.status === 429) {
       return NextResponse.json({ error: "Rate limit exceeded. Try again in a few minutes." }, { status: 429 });
+    }
+
+    // A retired or mistyped model ID. Distinct message so this is diagnosable
+    // without reading server logs.
+    if (error?.status === 404) {
+      return NextResponse.json(
+        { error: `AI model "${CLAUDE_MODEL}" is unavailable. It may have been retired — update CLAUDE_MODEL.` },
+        { status: 503 }
+      );
+    }
+
+    if (error?.status === 401 || error?.status === 403) {
+      return NextResponse.json(
+        { error: "AI service authentication failed. Check ANTHROPIC_API_KEY." },
+        { status: 503 }
+      );
     }
 
     return NextResponse.json({ error: "Failed to get AI analysis" }, { status: 500 });
